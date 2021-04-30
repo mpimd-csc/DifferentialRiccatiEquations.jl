@@ -1,0 +1,13 @@
+name = "DifferentialRiccatiEquations"
+uuid = "9819f967-4574-4d9d-b214-002eeba273d9"
+authors = ["Jonas Schulze <jschulze@mpi-magdeburg.mpg.de> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
