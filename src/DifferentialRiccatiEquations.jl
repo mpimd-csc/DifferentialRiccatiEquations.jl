@@ -25,6 +25,7 @@ struct Ros3 end
 struct Ros4 end
 
 include("dense_ros1.jl")
+include("dense_ros2.jl")
 
 export solve
 export GDREProblem
