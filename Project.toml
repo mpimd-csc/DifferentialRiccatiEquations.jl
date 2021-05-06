@@ -5,12 +5,15 @@ version = "0.1.0"
 
 [deps]
 CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
+MatrixEquations = "99c1a7ee-ab34-5fd5-8076-27c950a045f4"
+UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
 julia = "1"
 
 [extras]
+MAT = "23992714-dd62-5051-b70f-ba57cb901cac"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["MAT", "Test"]

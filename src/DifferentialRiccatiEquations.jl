@@ -2,10 +2,21 @@ module DifferentialRiccatiEquations
 
 import CommonSolve: solve
 
+using MatrixEquations: lyapc
+using UnPack: @unpack
+
 struct GDREProblem
+    E
+    A
+    B
+    C
+    X0
+    tspan
 end
 
 struct DRESolution
+    X
+    t
 end
 
 struct Ros1 end
