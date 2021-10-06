@@ -16,6 +16,7 @@ end
 
 struct DRESolution
     X
+    K
     t
 end
 

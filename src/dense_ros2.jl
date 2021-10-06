@@ -11,13 +11,15 @@ function solve(
     # Global parameter for the method
     γ = 1+(1/sqrt(2))
 
-    # Output Trajectory
+    # Output Trajectories
     Xs = [X]
     sizehint!(Xs, len)
+    K = (B'*X)*E
+    Ks = [K]
+    sizehint!(Ks, len)
 
     for i in 2:len
         τ = tstops[i-1] - tstops[i]
-        K = (B'*X)*E
 
         gF = γ*τ*(A-B*K) - E/2
 
@@ -36,10 +38,12 @@ function solve(
 
         # Update X
         X = X + (τ/2)*K2
-
-        # Store X
         push!(Xs, X)
+
+        # Update K
+        K = (B'*X)*E
+        push!(Ks, K)
     end
 
-    return DRESolution(Xs, tstops)
+    return DRESolution(Xs, Ks, tstops)
 end

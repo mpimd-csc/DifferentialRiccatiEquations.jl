@@ -8,13 +8,15 @@ function solve(
     tstops = tspan[1]:dt:tspan[2]
     len = length(tstops)
 
-    # Output Trajectory
+    # Output Trajectories
     Xs = [X]
     sizehint!(Xs, len)
+    K = (B'*X)*E
+    Ks = [K]
+    sizehint!(Ks, len)
 
     for i in 2:len
         τ = tstops[i-1] - tstops[i]
-        K = (B'*X)*E
 
         # Coefficient Matrix of the Lyapunov Equation
         F = (A-B*K) - E/(2τ)
@@ -23,12 +25,14 @@ function solve(
         # Only for safety
         R = real(R+R')/2
 
-        # Solve the Equation
+        # Update X
         X = lyapc(F', E', R)
-
-        # Store X
         push!(Xs, X)
+
+        # Update K
+        K = (B'*X)*E
+        push!(Ks, K)
     end
 
-    return DRESolution(Xs, tstops)
+    return DRESolution(Xs, Ks, tstops)
 end
