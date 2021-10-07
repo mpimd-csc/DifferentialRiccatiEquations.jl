@@ -6,7 +6,7 @@ using MAT, UnPack, Test
 const DREs = DifferentialRiccatiEquations
 
 # Setup
-P = matread("Rail371.mat")
+P = matread(joinpath(@__DIR__, "Rail371.mat"))
 @unpack E, A, B, C, X0 = P
 Ed = collect(E) # d=dense
 tspan = (4500., 0.) # backwards in time
