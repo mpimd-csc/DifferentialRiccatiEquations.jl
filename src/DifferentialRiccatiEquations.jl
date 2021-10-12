@@ -2,7 +2,8 @@ module DifferentialRiccatiEquations
 
 import CommonSolve: solve
 
-using MatrixEquations: lyapc
+using LinearAlgebra: schur
+using MatrixEquations: lyapc, lyapcs!, utqu!
 using UnPack: @unpack
 
 struct GDREProblem

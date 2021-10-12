@@ -29,24 +29,34 @@ function solve(
         τ = tstops[i-1] - tstops[i]
 
         gF = (A - B*K) - E/(2γ*τ)
+        Fs, Es, Q, Z = schur(gF, E)
 
         # Solve Lyapunov equation of 1st stage
         AXE = A'X*E
         R = C'C + AXE + AXE' - K'K
         R = real(R+R')/2
-        K1 = lyapc(gF', E', R)
+        utqu!(R, Z) # R = Z'*R*Z
+        lyapcs!(Fs, Es, R; adj=true)
+        K1 = R
+        utqu!(K1, Q') # K1 = Q*K1*Q'
 
         # Solve Lyapunov equation of 2nd stage
         RX = (A'K1 - K'*(B'K1))*E
         R23 = a21*(RX+RX')
         R2 = R23 + (c21/τ)*E'K1*E
         R2 = real(R2+R2')/2
-        K21 = lyapc(gF', E', R2)
+        utqu!(R2, Z) # R2 = Z'*R2*Z
+        lyapcs!(Fs, Es, R2; adj=true)
+        K21 = R2
+        utqu!(K21, Q') # K21 = Q*K21*Q'
 
         # Solve Lyapunov equation of 3rd stage
         R3 = R23 + E'*(((c31/τ)+(c32/τ))*K1 + (c32/τ)*K21)*E
         R3 = real(R3+R3')/2
-        K31 = lyapc(gF', E', R3)
+        utqu!(R3, Z) # R3 = Z'*R3*Z
+        lyapcs!(Fs, Es, R3; adj=true)
+        K31 = R3
+        utqu!(K31, Q') # K31 = Q*K31*Q'
 
         # Update X
         X = X + (m1+m2+m3)*K1 + m2*K21 + m3*K31

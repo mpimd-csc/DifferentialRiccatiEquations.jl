@@ -22,18 +22,23 @@ function solve(
         τ = tstops[i-1] - tstops[i]
 
         gF = γ*τ*(A-B*K) - E/2
+        Fs, Es, Q, Z = schur(gF, E)
 
         # Solve Lyapunov equation of 1st stage
         R = C'*C + A'*X*E + E'*X*A - K'*K
         R = real(R+R')/2
-
-        K1 = lyapc(gF', E', R)
+        utqu!(R, Z) # R = Z'*R*Z
+        lyapcs!(Fs, Es, R; adj=true)
+        K1 = R
+        utqu!(K1, Q') # K1 = Q*K1*Q'
 
         # Solve Lyapunov equation of 2nd stage
         R2 = -τ^2*(E'*(K1*B))*((B'*K1)*E) - (2-1/γ)*E'*K1*E
         R2 = real(R2+R2')/2
-
-        K̃2 = lyapc(gF', E', R2)
+        utqu!(R2, Z) # R2 = Z'*R2*Z
+        lyapcs!(Fs, Es, R2; adj=true)
+        K̃2 = R2
+        utqu!(K̃2, Q') # K̃2 = Q*K̃2*Q'
         K2 = K̃2 + (4-1/γ)*K1
 
         # Update X
