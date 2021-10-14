@@ -2,6 +2,7 @@ function solve(
     prob::GDREProblem,
     alg::Ros4;
     dt::Real,
+    save_state::Bool=false,
 )
     @unpack E, A, B, C, tspan = prob
     X = prob.X0
@@ -9,8 +10,11 @@ function solve(
     len = length(tstops)
 
     # Output Trajectories
-    Xs = [X]
-    sizehint!(Xs, len)
+    Xs = Vector{typeof(X)}()
+    if save_state
+        sizehint!(Xs, len)
+        push!(Xs, X)
+    end
     K = (B'*X)*E
     Ks = [K]
     sizehint!(Ks, len)
@@ -68,7 +72,7 @@ function solve(
 
         # Update X
         X = X + τ*((19/18)*K1 + 0.25*K2 + (25/216)*K3 + (125/216)*K4)
-        push!(Xs, X)
+        save_state && push!(Xs, X)
 
         # Update K
         K = (B'*X)*E
