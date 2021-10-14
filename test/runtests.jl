@@ -20,6 +20,6 @@ prob = GDREProblem(Ed, A, B, C, X0, tspan)
         @test sol isa DREs.DRESolution
         @test length(sol.t) == length(sol.X) == length(sol.K) == 2
         @test issorted(sol.t) == issorted(tspan) # do not alter direction of time
-        @test sol.X[begin] === X0 # do not copy
+        @test first(sol.X) === X0 # do not copy
     end
 end
