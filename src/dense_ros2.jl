@@ -13,11 +13,8 @@ function solve(
     γ = 1+(1/sqrt(2))
 
     # Output Trajectories
-    Xs = Vector{typeof(X)}()
-    if save_state
-        sizehint!(Xs, len)
-        push!(Xs, X)
-    end
+    Xs = [X]
+    save_state && sizehint!(Xs, len)
     K = (B'*X)*E
     Ks = [K]
     sizehint!(Ks, len)
@@ -53,6 +50,7 @@ function solve(
         K = (B'*X)*E
         push!(Ks, K)
     end
+    save_state || push!(Xs, X)
 
     return DRESolution(Xs, Ks, tstops)
 end
