@@ -1,8 +1,8 @@
-function solve(
+function _solve(
     prob::GDREProblem,
     alg::Ros3;
     dt::Real,
-    save_state::Bool=false,
+    save_state::Bool,
 )
     @unpack E, A, B, C, tspan = prob
     X = prob.X0
