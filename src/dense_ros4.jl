@@ -1,5 +1,5 @@
 function _solve(
-    prob::GDREProblem,
+    prob::GDREProblem{<:Matrix},
     alg::Ros4;
     dt::Real,
     save_state::Bool,
