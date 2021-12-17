@@ -1,8 +1,9 @@
 module DifferentialRiccatiEquations
 
 using CommonSolve: CommonSolve, solve
+using Compat: @something
 
-using LinearAlgebra: schur
+using LinearAlgebra
 using MatrixEquations: lyapc, lyapcs!, utqu!
 using UnPack: @unpack
 
@@ -31,6 +32,10 @@ struct DRESolution
     t
 end
 
+include("LDLt.jl")
+include("lyapunov/types.jl")
+include("lyapunov/adi.jl")
+
 abstract type Algorithm end
 struct Ros1 <: Algorithm end
 struct Ros2 <: Algorithm end
@@ -41,6 +46,8 @@ include("dense_ros1.jl")
 include("dense_ros2.jl")
 include("dense_ros3.jl")
 include("dense_ros4.jl")
+
+include("sparse_ros1.jl")
 
 function CommonSolve.solve(
     p::GDREProblem,
@@ -59,5 +66,6 @@ end
 export solve
 export GDREProblem
 export Ros1, Ros2, Ros3, Ros4
+export LDLᵀ
 
 end
