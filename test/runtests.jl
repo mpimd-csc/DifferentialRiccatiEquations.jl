@@ -16,6 +16,8 @@ X0s = LDLᵀ(Matrix(C'), Matrix(100.0I(size(C, 1))))
 sprob = GDREProblem(E, A, B, C, X0s, tspan)
 
 @testset "DifferentialRiccatiEquations.jl" begin
+    @testset "LDLᵀ" begin include("LDLt.jl") end
+
     function smoketest(prob, alg)
         sol = solve(prob, alg; dt=-4500)
         @test sol isa DREs.DRESolution
