@@ -19,12 +19,14 @@
         @printf "Test coverage %.2f%%\n" 100c / t'
 
 Julia 1.6:
+  interruptible: true
   image: julia:1.6
   extends:
     - .script
     - .coverage
 
 pages:
+  interruptible: true
   image: julia:1.6
   stage: deploy
   script:
