@@ -18,6 +18,9 @@ function _solve(
     Ks = [K]
     sizehint!(Ks, len)
 
+    TL = typeof(X.L)
+    TD = typeof(X.D)
+
     for i in 2:len
         τ = tstops[i-1] - tstops[i]
 
@@ -25,13 +28,13 @@ function _solve(
         F = (A-B*K) - E/(2τ)
 
         # Right-hand side:
-        G = [C' L]
-        l = size(BᵀLD, 2)
-        q = size(G, 2) - l
-        S = similar(G, q+l, q+l)
-        S[1:q, 1:q] .= I(q)
+        G::TL = [C' L]
+        n_G = size(G, 2)
+        S::TD = _zeros(TD, n_G)
+        q = size(C, 1)
+        S[1:q, 1:q] = I(q)
         S[q+1:end, q+1:end] = (BᵀLD)' * BᵀLD + D/τ
-        R = LDLᵀ(G, S)
+        R::T = LDLᵀ(G, S)
 
         # Update X
         lyap = GALEProblem(E, F, R)

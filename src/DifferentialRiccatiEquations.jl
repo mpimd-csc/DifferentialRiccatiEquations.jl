@@ -6,6 +6,7 @@ using Compat: @something
 using LinearAlgebra
 using MatrixEquations: lyapc, lyapcs!, utqu!
 using UnPack: @unpack
+using SparseArrays: SparseArrays, SparseMatrixCSC, spzeros, spdiagm
 
 """
 Generalized differential Riccati equation
@@ -35,6 +36,9 @@ end
 include("LDLt.jl")
 include("lyapunov/types.jl")
 include("lyapunov/adi.jl")
+
+include("util/_zeros.jl")
+include("util/_diagm.jl")
 
 abstract type Algorithm end
 struct Ros1 <: Algorithm end

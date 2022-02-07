@@ -1,9 +1,9 @@
 function CommonSolve.solve(
-    prob::GALEProblem{T},
+    prob::GALEProblem{LDLᵀ{TL,TD}},
     ::ADI;
-    nsteps=20,
+    nsteps=100,
     rtol=size(prob.A, 1) * eps(),
-) where {T <: LDLᵀ}
+) where {TL,TD}
     @unpack E, A, C = prob
     G, S = C
     ρ(X) = norm((X'X)*S) # Frobenius
@@ -14,11 +14,13 @@ function CommonSolve.solve(
 
     # Perform actual ADI
     i = 1
-    Ls = Vector{typeof(G)}()
-    W = G
+    n = size(G, 1)
+    X::LDLᵀ{TL,TD} = LDLᵀ{TL,TD}(n, 0)
+    W::TL = G
     local V, V1, V2 # ADI increments
     local ρW # norm of residual
     while true
+        i % 5 == 0 && @debug "ADI" i rank(X) ρW
         # If we exceeded the shift parameters, compute new ones:
         if i > length(μ)
             @debug "Computing new shifts" i
@@ -32,22 +34,29 @@ function CommonSolve.solve(
         end
 
         # Continue with ADI:
-        F = A' + μ[i]*E
-        V = F \ W
-
+        # TODO: Sherman-Morrison-Woodbury
+        Y::TD = -2real(μ[i]) * S
         if isreal(μ[i])
-            push!(Ls, V)
+            μᵢ = real(μ[i])
+            F = A' + μᵢ*E
+            V = F \ W
+
+            X += LDLᵀ(V, Y)
             W -= 2μ[i] * (E'*V)
             i += 1
         else
             @assert μ[i+1] ≈ conj(μ[i])
+            μᵢ = μ[i]
+            F = A' + μᵢ*E
+            V = F \ W
+
             δ = real(μ[i]) / imag(μ[i])
             Vᵣ = real(V)
             Vᵢ = imag(V)
             V′ = Vᵣ + δ*Vᵢ
-            V1 = √2 * V′
-            V2 = sqrt(2δ^2 + 1) * Vᵢ
-            push!(Ls, V1, V2)
+            V₁ = LDLᵀ(√2 * V′, Y)
+            V₂ = LDLᵀ(sqrt(2δ^2 + 1) * Vᵢ, Y)
+            X = X + V₁ + V₂
             W -= 4real(μ[i]) * (E'*V′)
             i += 2
         end
@@ -61,21 +70,12 @@ function CommonSolve.solve(
     end
 
     i -= 1 # actual number of ADI steps performed
-    @info "ADI done" μ i nsteps residual=ρW atol
+    @debug "ADI done" i nsteps residual=ρW atol rank(X) extrema(diag(X.D))
 
-    n = size(G, 1)
-    L = similar(G, n, sum(_L -> size(_L, 2), Ls))
-    col = 0
-    for _L in Ls
-        ncols = size(_L, 2)
-        L[:, col+1:col+ncols] .= _L
-        col += ncols
-    end
-    D = kron(-2*Diagonal(real(μ[1:i])), S)
-    return T(L, D)
+    return X
 end
 
-function qshifts(E, A, N)
+function qshifts(E, A, N::AbstractMatrix{<:Real})
     Q = orth(N)
     Ẽ = Q'E*Q
     Ã = Q'A*Q
@@ -85,12 +85,14 @@ function qshifts(E, A, N)
 end
 
 function orth(N)
-    λ, N̂ = eigen(Symmetric(N'N); sortby=-)
+    NᵀN = Symmetric(Matrix(N'N))
+    λ, N̂ = eigen(NᵀN; sortby=-)
     ε = count(>(0), λ) * eps() # cf. [Kürschner2016, p. 94]
     d = findlast(>=(ε*λ[1]), λ)
     D̂ = Diagonal(λ[1:d])
     N̂ = N̂[:, 1:d]
     Q = N * (N̂ * (D̂^-0.5))
     #@assert Q'Q ≈ I # FIXME
+    !(Q'Q ≈ I) && @error "Q not orthonormal" typeof(N) size(N) norm(Q'Q - I)
     return Q
 end

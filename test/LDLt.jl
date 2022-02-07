@@ -1,5 +1,6 @@
 using Test, DifferentialRiccatiEquations
 using DifferentialRiccatiEquations: compress
+using LinearAlgebra
 
 n = 10
 k = 3
@@ -49,6 +50,9 @@ end
     X = sample(n, 0)
     @test rank(X) == 0
     @test Matrix(X) == zeros(n, n)
+
+    X = LDLᵀ{Matrix{Bool},Matrix{Bool}}(n, 0)
+    @test rank(X) == 0
 end
 
 @testset "Arithmetic" begin
