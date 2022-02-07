@@ -59,5 +59,5 @@ end
     X = sample(n, k)
     @test rank(X) == k
     @test rank(X+X) == k
-    @test_broken rank(X-X) == 0
+    @test rank(X-X) == 0 # flaky
 end
