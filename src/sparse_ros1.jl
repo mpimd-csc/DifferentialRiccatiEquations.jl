@@ -28,7 +28,7 @@ function _solve(
         F = (A-B*K) - E/(2τ)
 
         # Right-hand side:
-        G::TL = [C' L]
+        G::TL = [C' E'L]
         n_G = size(G, 2)
         S::TD = _zeros(TD, n_G)
         q = size(C, 1)

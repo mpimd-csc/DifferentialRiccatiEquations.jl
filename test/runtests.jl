@@ -43,20 +43,18 @@ sprob2 = GDREProblem(E, A, B, C, X0ss, tspan)
 
     @testset "Low-Rank $alg" for alg in (Ros1(),)
         # Replicate K with dense solver:
-        ref  = solve(prob,   alg; dt=Δt(5))
+        ref = solve(prob, alg; dt=Δt(5))
+        @show norm(ref.K[end])
+        ε = 1e-3 # FIXME: use tighter threshold, e.g. `size(X0, 1) * eps()`
         @testset "Dense D" begin
             smoketest(sprob1, alg)
-            #=
             sol1 = solve(sprob1, alg; dt=Δt(5))
-            @test ref.K[end] ≈ sol1.K[end]
-            =#
+            @test norm(ref.K[end] - sol1.K[end]) < ε
         end
         @testset "Sparse D" begin
             smoketest(sprob2, alg)
-            #=
             sol2 = solve(sprob2, alg; dt=Δt(5))
-            @test ref.K[end] ≈ sol2.K[end]
-            =#
+            @test norm(ref.K[end] - sol2.K[end]) < ε
         end
     end
 end
