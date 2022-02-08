@@ -13,11 +13,16 @@ tspan = (4500., 4400.) # backwards in time
 prob = GDREProblem(Ed, A, B, C, X0, tspan)
 
 # Low-Rank Setup With Dense D
-X0s = LDLᵀ(Matrix(C'), Matrix(100.0I(size(C, 1))))
+q = size(C, 1)
+L = E \ C'
+D = Matrix(0.01I(q))
+X0s = LDLᵀ(L, D)
 sprob1 = GDREProblem(E, A, B, C, X0s, tspan)
+@test Matrix(X0s) ≈ X0
 
 # Low-Rank Setup With Sparse D
-X0ss = LDLᵀ(Matrix(C'), sparse(100.0I(size(C, 1))))
+Ds = sparse(0.01I(q))
+X0ss = LDLᵀ(L, Ds)
 sprob2 = GDREProblem(E, A, B, C, X0ss, tspan)
 
 Δt(nsteps::Int) = (tspan[2] - tspan[1]) ÷ nsteps
@@ -44,8 +49,7 @@ sprob2 = GDREProblem(E, A, B, C, X0ss, tspan)
     @testset "Low-Rank $alg" for alg in (Ros1(),)
         # Replicate K with dense solver:
         ref = solve(prob, alg; dt=Δt(5))
-        @show norm(ref.K[end])
-        ε = 1e-3 # FIXME: use tighter threshold, e.g. `size(X0, 1) * eps()`
+        ε = norm(ref.K[end]) * size(E, 1) * eps() * 100
         @testset "Dense D" begin
             smoketest(sprob1, alg)
             sol1 = solve(sprob1, alg; dt=Δt(5))
