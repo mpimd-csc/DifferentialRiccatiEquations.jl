@@ -10,7 +10,7 @@ function CommonSolve.solve(
     atol = rtol * ρ(G)
 
     # Compute initial shift parameters
-    μ = qshifts(E, A, G)
+    μ::Vector{ComplexF64} = qshifts(E, A, G)
 
     # Perform actual ADI
     i = 1
