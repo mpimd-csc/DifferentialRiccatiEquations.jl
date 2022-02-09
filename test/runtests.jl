@@ -2,6 +2,7 @@ using DifferentialRiccatiEquations
 using MAT, UnPack, Test
 using LinearAlgebra
 using SparseArrays
+using DifferentialRiccatiEquations: orth
 
 const DREs = DifferentialRiccatiEquations
 
@@ -29,6 +30,14 @@ sprob2 = GDREProblem(E, A, B, C, X0ss, tspan)
 
 @testset "DifferentialRiccatiEquations.jl" begin
     @testset "LDLᵀ" begin include("LDLt.jl") end
+    @testset "orth" begin
+        N = zeros(4, 1)
+        Q = orth(N)
+        @test size(Q) == (4, 0)
+        Ns = sparse(N)
+        Qs = orth(Ns)
+        @test size(Qs) == (4, 0)
+    end
 
     function smoketest(prob, alg)
         sol = solve(prob, alg; dt=Δt(1))

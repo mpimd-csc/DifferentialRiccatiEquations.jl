@@ -84,15 +84,26 @@ function qshifts(E, A, N::AbstractMatrix{<:Real})
     return λ₋
 end
 
-function orth(N)
-    NᵀN = Symmetric(Matrix(N'N))
-    λ, N̂ = eigen(NᵀN; sortby=-)
-    ε = count(>(0), λ) * eps() # cf. [Kürschner2016, p. 94]
-    d = findlast(>=(ε*λ[1]), λ)
-    D̂ = Diagonal(λ[1:d])
-    N̂ = N̂[:, 1:d]
-    Q = N * (N̂ * (D̂^-0.5))
-    #@assert Q'Q ≈ I # FIXME
-    !(Q'Q ≈ I) && @error "Q not orthonormal" typeof(N) size(N) norm(Q'Q - I)
+orth(N::SparseMatrixCSC) = orth(Matrix(N))
+
+function orth(N::Matrix{T}) where {T}
+    QR = qr(N, Val(true)) # pivoted
+    R = QR.R
+    # TODO: Find reference! As of LAPACK 3.1.2 or so,
+    # the diagonal of R is sorted with decreasing absolute value,
+    # and R is diagonal dominant. Therefore, it may be used to discover the rank.
+    # Note that column permutations don't matter for span(N) == span(Q).
+    ε = size(N, 1) * eps()
+    r = 0
+    for outer r in 1:size(R, 1)
+        abs(R[r,r]) > ε && continue
+        r -= 1
+        break
+    end
+    Q = zeros(T, size(N, 1), r)
+    for i in 1:r
+        Q[i,i] = 1
+    end
+    lmul!(QR.Q, Q)
     return Q
 end
