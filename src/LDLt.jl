@@ -42,6 +42,7 @@ function Base.:(+)(Xs::LDLᵀ{TL,TD}...) where {TL,TD}
     end
 
     X = LDLᵀ{TL,TD}(L, D)
+    size(L, 2) <= 0.5 * size(L, 1) && return X
     return compress(X)
 end
 
@@ -60,6 +61,7 @@ function Base.:(-)(X::LDLᵀ{TL,TD}, Y::LDLᵀ{TL,TD}) where {TL,TD}
     F[k+1:K,k+1:K] = -D
 
     Z = LDLᵀ(E, F)
+    size(E, 2) <= 0.5 * size(E, 1) && return Z
     return compress(Z)
 end
 
@@ -82,5 +84,6 @@ function compress(X::LDLᵀ{TL,TD}) where {TL,TD}
     Vᵣ = @view V[:, 1:r]
     Λᵣ::TD = _diagm(TD, λ[1:r])
     Lᵣ::TL = Q * Vᵣ
+    @debug "Compressed LDLᵀ from rank $(rank(X)) to $r"
     return LDLᵀ(Lᵣ, Λᵣ)
 end

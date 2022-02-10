@@ -34,7 +34,7 @@ function _solve(
         q = size(C, 1)
         S[1:q, 1:q] = I(q)
         S[q+1:end, q+1:end] = (BᵀLD)' * BᵀLD + D/τ
-        R::T = LDLᵀ(G, S)
+        R::T = compress(LDLᵀ(G, S))
 
         # Update X
         lyap = GALEProblem(E, F, R)
