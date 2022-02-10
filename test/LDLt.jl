@@ -51,8 +51,9 @@ end
     @test rank(X) == 0
     @test Matrix(X) == zeros(n, n)
 
-    X = LDLᵀ{Matrix{Bool},Matrix{Bool}}(n, 0)
-    @test rank(X) == 0
+    Z = zero(X)
+    @test typeof(Z) == typeof(X)
+    @test rank(Z) == 0
 end
 
 @testset "Arithmetic" begin

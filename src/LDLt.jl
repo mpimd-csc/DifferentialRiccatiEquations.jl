@@ -5,12 +5,6 @@ struct LDLᵀ{TL,TD}
 
     LDLᵀ(L::TL, D::TD) where {TL, TD} = new{TL,TD}(L, D)
     LDLᵀ{TL,TD}(L::TL, D::TD) where {TL, TD} = new{TL,TD}(L, D)
-
-    function LDLᵀ{TL,TD}(n::Int, k::Int) where {TL,TD}
-        L = _zeros(TL, n, k)
-        D = _zeros(TD, k, k)
-        new{TL,TD}(L, D)
-    end
 end
 
 # Mainly for testing
@@ -22,6 +16,14 @@ Base.iterate(LD::LDLᵀ, _) = LD.D, nothing
 
 LinearAlgebra.rank(X::LDLᵀ) = size(X.L, 2)
 Base.size(X::LDLᵀ) = (n = size(X.L, 1); (n, n))
+Base.size(X::LDLᵀ, i) = i <= 2 ? size(X.L, 1) : 1
+
+function Base.zero(X::LDLᵀ{TL,TD}) where {TL,TD}
+    n = size(X, 1)
+    L = _zeros(TL, n, 0)
+    D = _zeros(TD, 0, 0)
+    LDLᵀ{TL,TD}(L, D)
+end
 
 function Base.:(+)(Xs::LDLᵀ{TL,TD}...) where {TL,TD}
     n = size(first(Xs).L, 1)

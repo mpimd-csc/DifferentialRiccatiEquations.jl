@@ -15,7 +15,7 @@ function CommonSolve.solve(
     # Perform actual ADI
     i = 1
     n = size(G, 1)
-    X::LDLᵀ{TL,TD} = LDLᵀ{TL,TD}(n, 0)
+    X::LDLᵀ{TL,TD} = zero(C)
     W::TL = G
     local V, V1, V2 # ADI increments
     local ρW # norm of residual
