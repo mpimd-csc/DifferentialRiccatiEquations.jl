@@ -6,7 +6,12 @@ using Compat: @something
 using LinearAlgebra
 using MatrixEquations: lyapc, lyapcs!, utqu!
 using UnPack: @unpack
-using SparseArrays: SparseArrays, SparseMatrixCSC, spzeros, spdiagm
+using SparseArrays: SparseArrays,
+                    SparseMatrixCSC,
+                    AbstractSparseMatrixCSC,
+                    issparse,
+                    spzeros,
+                    spdiagm
 
 """
 Generalized differential Riccati equation
@@ -34,11 +39,13 @@ struct DRESolution
 end
 
 include("LDLt.jl")
+include("LowRankUpdate.jl")
 include("lyapunov/types.jl")
 include("lyapunov/adi.jl")
 
 include("util/_zeros.jl")
 include("util/_diagm.jl")
+include("util/restrict.jl")
 
 abstract type Algorithm end
 struct Ros1 <: Algorithm end

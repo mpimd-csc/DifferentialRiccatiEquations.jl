@@ -77,8 +77,8 @@ end
 
 function qshifts(E, A, N::AbstractMatrix{<:Real})
     Q = orth(N)
-    Ẽ = Q'E*Q
-    Ã = Q'A*Q
+    Ẽ = restrict(E, Q)
+    Ã = restrict(A, Q)
     λ = eigvals(Ã, Ẽ)
     λ₋ = filter(l -> real(l) < 0, λ)
     return λ₋

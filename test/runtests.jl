@@ -30,6 +30,7 @@ sprob2 = GDREProblem(E, A, B, C, X0ss, tspan)
 
 @testset "DifferentialRiccatiEquations.jl" begin
     @testset "LDLᵀ" begin include("LDLt.jl") end
+    @testset "LowRankUpdate" begin include("LowRankUpdate.jl") end
     @testset "orth" begin
         N = zeros(4, 1)
         Q = orth(N)

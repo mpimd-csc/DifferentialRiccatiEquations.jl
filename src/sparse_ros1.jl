@@ -25,7 +25,7 @@ function _solve(
         τ = tstops[i-1] - tstops[i]
 
         # Coefficient Matrix of the Lyapunov Equation
-        F = (A-B*K) - E/(2τ)
+        F = lr_update(A - E/(2τ), -1, B, K)
 
         # Right-hand side:
         G::TL = [C' E'L]
