@@ -53,12 +53,12 @@ struct Ros2 <: Algorithm end
 struct Ros3 <: Algorithm end
 struct Ros4 <: Algorithm end
 
-include("dense_ros1.jl")
-include("dense_ros2.jl")
-include("dense_ros3.jl")
-include("dense_ros4.jl")
+include("riccati/dense_ros1.jl")
+include("riccati/dense_ros2.jl")
+include("riccati/dense_ros3.jl")
+include("riccati/dense_ros4.jl")
 
-include("sparse_ros1.jl")
+include("riccati/sparse_ros1.jl")
 
 function CommonSolve.solve(
     p::GDREProblem,
