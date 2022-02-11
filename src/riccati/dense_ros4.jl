@@ -19,6 +19,7 @@ function _solve(
 
     # Global parameter for the method
 
+    CᵀC = C'C
     for i in 2:len
         τ = tstops[i-1] - tstops[i]
 
@@ -27,7 +28,7 @@ function _solve(
 
         # Solve Lyapunov equation of 1st stage
         AXE = A'X*E
-        R = C'C + AXE + AXE' - K'K
+        R = CᵀC + AXE + AXE' - K'K
         R = real(R+R')/2
         utqu!(R, Z) # R = Z'*R*Z
         lyapcs!(Fs, Es, R; adj=true)
