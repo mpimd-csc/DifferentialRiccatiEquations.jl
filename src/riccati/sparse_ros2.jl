@@ -26,7 +26,7 @@ function _solve(
         τ = tstops[i-1] - tstops[i]
 
         γτ = γ*τ
-        F = lr_update(γτ*A - E/2, -γτ, B, K)
+        F = lr_update(γτ*A - E/2, inv(-γτ), B, K)
 
         # Solve Lyapunov equation of 1st stage
         G::TL = _hcat(TL, C', A'L, E'L)
