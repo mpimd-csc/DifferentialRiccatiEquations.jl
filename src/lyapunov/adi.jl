@@ -81,6 +81,7 @@ function qshifts(E, A, N::AbstractMatrix{<:Real})
     Ẽ = restrict(E, Q)
     Ã = restrict(A, Q)
     λ = eigvals(Ã, Ẽ)
+    # TODO: flip values at imaginary axes instead
     λ₋ = filter(l -> real(l) < 0, λ)
     return λ₋
 end

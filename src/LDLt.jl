@@ -5,6 +5,7 @@
 A lazy representation of `L * D * L'` that supports the following functions:
 
 * `+(::LDLᵀ, ::LDLᵀ)` and `+(::LDLᵀ{TL,TD}, ::Tuple{TL,TD})`
+* `*(::Real, ::LDLᵀ)`
 * [`size`](@ref)
 * [`rank`](@ref) which yields the length of the inner dimension, i.e. `size(D, 1)`
 * [`zero`](@ref) which yields a rank 0 representation
@@ -94,6 +95,11 @@ function Base.:(-)(X::LDLᵀ{TL,TD}, Y::LDLᵀ{TL,TD}) where {TL,TD}
     maybe_compress!(Z)
 end
 
+function Base.:(*)(α::Real, X::LDLᵀ)
+    L, D = X
+    LDLᵀ(L, α*D)
+end
+
 function compression_due(X::LDLᵀ)
     # If there is only one component, it has likely already been compressed:
     length(X.Ls) == 1 && return false
@@ -127,19 +133,8 @@ function concatenate!(X::LDLᵀ{TL,TD}) where {TL,TD}
     @unpack Ls, Ds = X
     @assert length(Ls) == length(Ds)
     length(Ls) == 1 && return X
-    n = size(X, 1)
-    r = rank(X)
-    L::TL = _zeros(TL, n, r)
-    D::TD = _zeros(TD, r, r)
-    k = 0
-    for (_L, _D) in zip(Ls, Ds)
-        l = size(_L, 2)
-        span = k+1:k+l
-        L[:, span] = _L
-        D[span, span] = _D
-        k += l
-    end
-    @assert k == r
+    L = _hcat(TL, Ls)
+    D = _dcat(TD, Ds)
     resize!(X.Ls, 1)
     resize!(X.Ds, 1)
     X.Ls[1] = L

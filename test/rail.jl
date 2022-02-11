@@ -46,7 +46,7 @@ end
 @test Matrix(X0s) ≈ X0
 @test Matrix(X0ss) ≈ X0
 
-@testset "Low-Rank $alg" for alg in (Ros1(),)
+@testset "Low-Rank $alg" for alg in (Ros1(), Ros2())
     # Replicate K with dense solver:
     ref = solve(prob, alg; dt=Δt(5))
     ε = norm(ref.K[end]) * size(E, 1) * eps() * 100

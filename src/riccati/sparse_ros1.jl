@@ -7,6 +7,7 @@ function _solve(
     T = LDLᵀ{TL,TD}
 
     @unpack E, A, B, C, tspan = prob
+    q = size(C, 1)
     X = prob.X0::T
     tstops = tspan[1]:dt:tspan[2]
     len = length(tstops)
@@ -27,12 +28,8 @@ function _solve(
         F = lr_update(A - E/(2τ), -1, B, K)
 
         # Right-hand side:
-        G::TL = [C' E'L]
-        n_G = size(G, 2)
-        S::TD = _zeros(TD, n_G)
-        q = size(C, 1)
-        S[1:q, 1:q] = I(q)
-        S[q+1:end, q+1:end] = (BᵀLD)' * BᵀLD + D/τ
+        G::TL = _hcat(TL, C', E'L)
+        S::TD = _dcat(TD, I(q), (BᵀLD)' * BᵀLD + D/τ)
         R::T = compress!(LDLᵀ(G, S))
 
         # Update X
