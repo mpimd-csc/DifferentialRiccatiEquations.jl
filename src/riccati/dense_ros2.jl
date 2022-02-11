@@ -5,6 +5,7 @@ function _solve(
     save_state::Bool,
 )
     @unpack E, A, B, C, tspan = prob
+    Ed = collect(E)
     X = prob.X0
     tstops = tspan[1]:dt:tspan[2]
     len = length(tstops)
@@ -23,7 +24,7 @@ function _solve(
         τ = tstops[i-1] - tstops[i]
 
         gF = γ*τ*(A-B*K) - E/2
-        Fs, Es, Q, Z = schur(gF, E)
+        Fs, Es, Q, Z = schur(gF, Ed)
 
         # Solve Lyapunov equation of 1st stage
         R = C'*C + A'*X*E + E'*X*A - K'*K
