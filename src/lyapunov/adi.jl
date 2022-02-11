@@ -34,7 +34,6 @@ function CommonSolve.solve(
         end
 
         # Continue with ADI:
-        # TODO: Sherman-Morrison-Woodbury
         Y::TD = -2real(μ[i]) * S
         if isreal(μ[i])
             μᵢ = real(μ[i])
