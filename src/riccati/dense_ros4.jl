@@ -1,8 +1,8 @@
-function solve(
-    prob::GDREProblem,
-    alg::Ros3;
+function _solve(
+    prob::GDREProblem{<:Matrix},
+    alg::Ros4;
     dt::Real,
-    save_state::Bool=false,
+    save_state::Bool,
 )
     @unpack E, A, B, C, tspan = prob
     X = prob.X0
@@ -17,19 +17,11 @@ function solve(
     sizehint!(Ks, len)
 
     # Global parameter for the method
-    γ = 7.886751345948129e-1
-    a21 = 1.267949192431123
-    c21 = -1.607695154586736
-    c31 = -3.464101615137755
-    c32 = -1.732050807568877
-    m1 = 2
-    m2 = 5.773502691896258e-1
-    m3 = 4.226497308103742e-1
 
     for i in 2:len
         τ = tstops[i-1] - tstops[i]
 
-        gF = (A - B*K) - E/(2γ*τ)
+        gF = (τ*(A-B*K)-E)/2
         Fs, Es, Q, Z = schur(gF, E)
 
         # Solve Lyapunov equation of 1st stage
@@ -42,25 +34,41 @@ function solve(
         utqu!(K1, Q') # K1 = Q*K1*Q'
 
         # Solve Lyapunov equation of 2nd stage
-        RX = (A'K1 - K'*(B'K1))*E
-        R23 = a21*(RX+RX')
-        R2 = R23 + (c21/τ)*E'K1*E
+        EK1E = E'*K1*E
+        EK1B = E'*(K1*B)
+        R2 = -τ^2*(EK1B*EK1B')-2*EK1E
         R2 = real(R2+R2')/2
         utqu!(R2, Z) # R2 = Z'*R2*Z
         lyapcs!(Fs, Es, R2; adj=true)
         K21 = R2
         utqu!(K21, Q') # K21 = Q*K21*Q'
+        K2 = K21 - K1
 
         # Solve Lyapunov equation of 3rd stage
-        R3 = R23 + E'*(((c31/τ)+(c32/τ))*K1 + (c32/τ)*K21)*E
+        α = (24/25)*τ
+        β = (3/25)*τ
+        EK2E = E'*K2*E
+        EK2B = E'*(K2*B)
+        TMP = EK2B*EK1B'
+        R3 = (245/25)*EK1E + (36/25)*EK2E - (426/625)*τ^2*(EK1B*EK1B') - β^2*(EK2B*EK2B') - α*β*(TMP+TMP')
         R3 = real(R3+R3')/2
         utqu!(R3, Z) # R3 = Z'*R3*Z
         lyapcs!(Fs, Es, R3; adj=true)
         K31 = R3
         utqu!(K31, Q') # K31 = Q*K31*Q'
+        K3 = K31 - (17/25)*K1
+
+        # Solve Lyapunov equation of 4th stage
+        R4 = -(981/125)*EK1E-(177/125)*EK2E-(1/5)*E'*K3*E
+        R4 = real(R4+R4')/2
+        utqu!(R4, Z) # R4 = Z'*R4*Z
+        lyapcs!(Fs, Es, R4; adj=true)
+        K41 = R4
+        utqu!(K41, Q') # K41 = Q*K41*Q'
+        K4 = K41 + K3
 
         # Update X
-        X = X + (m1+m2+m3)*K1 + m2*K21 + m3*K31
+        X = X + τ*((19/18)*K1 + 0.25*K2 + (25/216)*K3 + (125/216)*K4)
         save_state && push!(Xs, X)
 
         # Update K
