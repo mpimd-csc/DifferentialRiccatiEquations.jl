@@ -5,6 +5,7 @@ function _solve(
     save_state::Bool,
 )
     @unpack E, A, B, C, tspan = prob
+    Ed = collect(E)
     X = prob.X0
     tstops = tspan[1]:dt:tspan[2]
     len = length(tstops)
@@ -27,7 +28,7 @@ function _solve(
         R = real(R+R')/2
 
         # Update X
-        X = lyapc(F', E', R)
+        X = lyapc(F', Ed', R)
         save_state && push!(Xs, X)
 
         # Update K
