@@ -77,6 +77,6 @@ end
 export solve
 export GDREProblem
 export Ros1, Ros2, Ros3, Ros4
-export LDLᵀ
+export LDLᵀ, concatenate!, compress!
 
 end

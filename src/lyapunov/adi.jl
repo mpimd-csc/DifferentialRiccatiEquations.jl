@@ -41,7 +41,7 @@ function CommonSolve.solve(
             F = A' + μᵢ*E
             V = F \ W
 
-            X += LDLᵀ(V, Y)
+            X += (V, Y)
             W -= 2μ[i] * (E'*V)
             i += 1
         else
@@ -54,9 +54,9 @@ function CommonSolve.solve(
             Vᵣ = real(V)
             Vᵢ = imag(V)
             V′ = Vᵣ + δ*Vᵢ
-            V₁ = LDLᵀ(√2 * V′, Y)
-            V₂ = LDLᵀ(sqrt(2δ^2 + 1) * Vᵢ, Y)
-            X = X + V₁ + V₂
+            V₁ = √2 * V′
+            V₂ = sqrt(2δ^2 + 1) * Vᵢ
+            X = X + (V₁, Y) + (V₂, Y)
             W -= 4real(μ[i]) * (E'*V′)
             i += 2
         end
@@ -69,8 +69,10 @@ function CommonSolve.solve(
         end
     end
 
+    _, D = X # run compression, if necessary
+
     i -= 1 # actual number of ADI steps performed
-    @debug "ADI done" i nsteps residual=ρW atol rank(X) extrema(diag(X.D))
+    @debug "ADI done" i nsteps residual=ρW atol rank(X) extrema(D)
 
     return X
 end

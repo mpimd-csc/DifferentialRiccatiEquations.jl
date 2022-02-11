@@ -1,9 +1,11 @@
 function _solve(
-    prob::GDREProblem{T},
+    prob::GDREProblem{LDLᵀ{TL,TD}},
     ::Ros1;
     dt::Real,
     save_state::Bool,
-) where {T <: LDLᵀ}
+) where {TL,TD}
+    T = LDLᵀ{TL,TD}
+
     @unpack E, A, B, C, tspan = prob
     X = prob.X0::T
     tstops = tspan[1]:dt:tspan[2]
@@ -18,9 +20,6 @@ function _solve(
     Ks = [K]
     sizehint!(Ks, len)
 
-    TL = typeof(X.L)
-    TD = typeof(X.D)
-
     for i in 2:len
         τ = tstops[i-1] - tstops[i]
 
@@ -34,7 +33,7 @@ function _solve(
         q = size(C, 1)
         S[1:q, 1:q] = I(q)
         S[q+1:end, q+1:end] = (BᵀLD)' * BᵀLD + D/τ
-        R::T = compress(LDLᵀ(G, S))
+        R::T = compress!(LDLᵀ(G, S))
 
         # Update X
         lyap = GALEProblem(E, F, R)
