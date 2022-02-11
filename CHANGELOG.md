@@ -1,5 +1,7 @@
 # DEV
 
+# v0.2
+
 * Add LDLᵀ factorization (4811939893a98b6ebc6e442f6a85ff0dcde4b42e)
 * Add LowRankUpdate representation which supports `\` via Sherman-Morrison-Woodbury (2b00c7bf0d817973d41d883773a68db173faaaa6)
 * Add low-rank Ros1 (implicit Euler) (!1)
