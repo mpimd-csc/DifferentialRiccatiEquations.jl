@@ -5,16 +5,16 @@
 A lazy representation of `L * D * L'` that supports the following functions:
 
 * `+(::LDLᵀ, ::LDLᵀ)` and `+(::LDLᵀ{TL,TD}, ::Tuple{TL,TD})`
-* [`size`](@ref)
-* [`rank`](@ref) which yields the length of the inner dimension, i.e. `size(D, 1)`
-* [`zero`](@ref) which yields a rank 0 representation
+* `size`
+* `rank` which yields the length of the inner dimension, i.e. `size(D, 1)`
+* `zero` which yields a rank 0 representation
 * [`concatenate!`](@ref) (expert use only)
 * [`compress!`](@ref) (expert use only)
 
 Iterating the structure yields `L::TL` and `D::TD`.
 This calls [`compress!`](@ref), if necessary.
 
-For convenience, the structure might be converted to a matrix via [`Matrix`](@ref).
+For convenience, the structure might be converted to a matrix via `Matrix`.
 It is recommended to use this only for testing.
 """
 struct LDLᵀ{TL,TD}
