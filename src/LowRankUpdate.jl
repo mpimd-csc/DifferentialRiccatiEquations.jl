@@ -3,10 +3,10 @@
 
 Lazy representation of `A + inv(α)*U*V` that supports the following functions:
 
-* [`\\`](@ref) via the Sherman-Morrison-Woodbury formula
+* `\\` via the Sherman-Morrison-Woodbury formula
 * `+(::LowRankUpdate, ::AbstractMatrix)` to update `A`
-* [`adjoint`](@ref) which returns a `LowRankUpdate`
-* [`size`](@ref)
+* `adjoint` which returns a `LowRankUpdate`
+* `size`
 
 Iterating the structure produces the components `A`, `α`, `U` and `V`.
 
