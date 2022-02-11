@@ -17,7 +17,7 @@ function CommonSolve.solve(
     n = size(G, 1)
     X::LDLᵀ{TL,TD} = zero(C)
     W::TL = G
-    local V, V1, V2 # ADI increments
+    local V, V₁, V₂ # ADI increments
     local ρW # norm of residual
     while true
         i % 5 == 0 && @debug "ADI" i rank(X) ρW
@@ -27,7 +27,7 @@ function CommonSolve.solve(
             μ′ = if isreal(μ[i-1])
                 qshifts(E, A, V)
             else
-                qshifts(E, A, [V1 V2])
+                qshifts(E, A, [V₁ V₂])
             end
             @debug "Obtained $(length(μ′)) new shifts" i
             append!(μ, μ′)
