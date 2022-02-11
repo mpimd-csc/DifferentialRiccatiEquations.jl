@@ -33,6 +33,9 @@ pages:
   interruptible: true
   image: julia:1.6
   stage: deploy
+  before_script:
+    # workaround for https://github.com/JuliaDocs/Documenter.jl/issues/686
+    - apt-get -qq update; apt-get -y install git
   script:
     - |
       julia --project=docs -e '
