@@ -95,6 +95,7 @@ function Base.:(-)(X::LDLᵀ{TL,TD}, Y::LDLᵀ{TL,TD}) where {TL,TD}
     maybe_compress!(Z)
 end
 
+# TODO: Make this more efficient by storing the scalar as a field of LDLᵀ.
 function Base.:(*)(α::Real, X::LDLᵀ)
     L, D = X
     LDLᵀ(L, α*D)
