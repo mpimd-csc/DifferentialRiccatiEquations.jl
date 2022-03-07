@@ -5,6 +5,7 @@ function _solve(
     save_state::Bool,
 )
     @unpack E, A, B, C, tspan = prob
+    Ed = collect(E)
     X = prob.X0
     tstops = tspan[1]:dt:tspan[2]
     len = length(tstops)
@@ -19,14 +20,16 @@ function _solve(
     Ks = [K]
     sizehint!(Ks, len)
 
+    CᵀC = C'C
     for i in 2:len
         τ = tstops[i-1] - tstops[i]
 
         gF = γ*τ*(A-B*K) - E/2
-        Fs, Es, Q, Z = schur(gF, E)
+        Fs, Es, Q, Z = schur(gF, Ed)
 
         # Solve Lyapunov equation of 1st stage
-        R = C'*C + A'*X*E + E'*X*A - K'*K
+        AᵀXE = (A' * X) * E
+        R = CᵀC + AᵀXE + (AᵀXE)' - K'K
         R = real(R+R')/2
         utqu!(R, Z) # R = Z'*R*Z
         lyapcs!(Fs, Es, R; adj=true)
@@ -34,7 +37,8 @@ function _solve(
         utqu!(K1, Q') # K1 = Q*K1*Q'
 
         # Solve Lyapunov equation of 2nd stage
-        R2 = -τ^2*(E'*(K1*B))*((B'*K1)*E) - (2-1/γ)*E'*K1*E
+        BᵀK₁E = (B' * K1) * E
+        R2 = (-τ^2 * BᵀK₁E)' * BᵀK₁E - (2-1/γ)*E'*K1*E
         R2 = real(R2+R2')/2
         utqu!(R2, Z) # R2 = Z'*R2*Z
         lyapcs!(Fs, Es, R2; adj=true)

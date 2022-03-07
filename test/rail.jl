@@ -8,9 +8,8 @@ const DREs = DifferentialRiccatiEquations
 # Dense Setup
 P = matread(joinpath(@__DIR__, "Rail371.mat"))
 @unpack E, A, B, C, X0 = P
-Ed = collect(E) # d=dense
 tspan = (4500., 4400.) # backwards in time
-prob = GDREProblem(Ed, A, B, C, X0, tspan)
+prob = GDREProblem(E, A, B, C, X0, tspan)
 
 # Low-Rank Setup With Dense D
 q = size(C, 1)

@@ -5,6 +5,10 @@
         using Pkg
         Pkg.build()
         Pkg.test(coverage=true)'
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /doc/
+      when: never
+    - when: always
 
 .coverage:
   coverage: /Test coverage (\d+\.\d+%)/
@@ -29,6 +33,9 @@ pages:
   interruptible: true
   image: julia:1.6
   stage: deploy
+  before_script:
+    # workaround for https://github.com/JuliaDocs/Documenter.jl/issues/686
+    - apt-get -qq update; apt-get -y install git
   script:
     - |
       julia --project=docs -e '
@@ -44,5 +51,12 @@ pages:
   artifacts:
     paths:
       - public
-  only:
-    - master
+  rules:
+    # merge request pipeline:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: manual
+    # skip branch pipeline, if there happens to be a MR pipeline:
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH =~ /doc/
