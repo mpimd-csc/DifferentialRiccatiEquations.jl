@@ -56,7 +56,7 @@ function _solve(
         K2 = solve(lyap, ADI())
 
         # Update X
-        X = X + (τ/2)*K2
+        X = X + ((2-1/2γ)*τ)*K1 + (-τ/2)*K2
         save_state && push!(Xs, X)
 
         # Update K
