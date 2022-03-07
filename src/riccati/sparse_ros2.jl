@@ -40,7 +40,7 @@ function _solve(
         S[b2, b3] = D
         S[b3, b2] = D
         S[b3, b3] = - (BᵀLD)' * BᵀLD
-        R1 = LDLᵀ{TL,TD}(G, S)
+        R1 = compress!(LDLᵀ{TL,TD}(G, S))
 
         lyap = GALEProblem(E, F, R1)
         K1 = solve(lyap, ADI())
