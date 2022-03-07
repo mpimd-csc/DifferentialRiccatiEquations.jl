@@ -45,6 +45,8 @@ include("lyapunov/adi.jl")
 
 include("util/_zeros.jl")
 include("util/_diagm.jl")
+include("util/_dcat.jl")
+include("util/_hcat.jl")
 include("util/restrict.jl")
 
 abstract type Algorithm end
@@ -59,6 +61,7 @@ include("riccati/dense_ros3.jl")
 include("riccati/dense_ros4.jl")
 
 include("riccati/sparse_ros1.jl")
+include("riccati/sparse_ros2.jl")
 
 function CommonSolve.solve(
     p::GDREProblem,

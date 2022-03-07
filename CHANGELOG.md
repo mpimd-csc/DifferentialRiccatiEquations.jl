@@ -1,5 +1,9 @@
 # DEV
 
+# v0.2.1
+
+* Add low-rank Ros2 (!4)
+
 # v0.2
 
 * Add LDLᵀ factorization (4811939893a98b6ebc6e442f6a85ff0dcde4b42e)

@@ -45,7 +45,8 @@ end
 @test Matrix(X0s) ≈ X0
 @test Matrix(X0ss) ≈ X0
 
-@testset "Low-Rank $alg" for alg in (Ros1(),)
+@testset "Low-Rank Ros1()" begin
+    alg = Ros1()
     # Replicate K with dense solver:
     ref = solve(prob, alg; dt=Δt(5))
     ε = norm(ref.K[end]) * size(E, 1) * eps() * 100
@@ -58,5 +59,24 @@ end
         smoketest(sprob2, alg)
         sol2 = solve(sprob2, alg; dt=Δt(5))
         @test norm(ref.K[end] - sol2.K[end]) < ε
+    end
+end
+
+@testset "Low-Rank Ros2()" begin
+    alg = Ros2()
+    # Replicate K with dense solver:
+    ref = solve(prob, alg; dt=Δt(5))
+    ε = norm(ref.K[end]) * size(E, 1) * eps() * 100
+    @testset "Dense D" begin
+        smoketest(sprob1, alg)
+        sol1 = solve(sprob1, alg; dt=Δt(5))
+        @test norm(ref.K[end] - sol1.K[end]) < 2e-3
+        @test_broken norm(ref.K[end] - sol1.K[end]) < ε
+    end
+    @testset "Sparse D" begin
+        smoketest(sprob2, alg)
+        sol2 = solve(sprob2, alg; dt=Δt(5))
+        @test norm(ref.K[end] - sol2.K[end]) < 2e-3
+        @test_broken norm(ref.K[end] - sol2.K[end]) < ε
     end
 end
