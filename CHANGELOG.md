@@ -1,5 +1,9 @@
 # DEV
 
+# v0.2.2
+
+* Fix ADI (425d4001112fcff88b30c58f020b106e10a7ef7b)
+
 # v0.2.1
 
 * Add low-rank Ros2 (!4)
