@@ -54,7 +54,7 @@ function CommonSolve.solve(
             Vᵢ = imag(V)
             V′ = Vᵣ + δ*Vᵢ
             V₁ = √2 * V′
-            V₂ = sqrt(2δ^2 + 1) * Vᵢ
+            V₂ = sqrt(2δ^2 + 2) * Vᵢ
             X = X + (V₁, Y) + (V₂, Y)
             W -= 4real(μ[i]) * (E'*V′)
             i += 2
