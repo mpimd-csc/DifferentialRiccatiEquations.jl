@@ -1,10 +1,13 @@
+default:
+  interruptible: true
+
 .script:
   script:
     - |
-      julia --project=@. -e '
+      julia --project=@. -e "
         using Pkg
         Pkg.build()
-        Pkg.test(coverage=true)'
+        Pkg.test(coverage=${COVERAGE-false})"
   rules:
     - if: $CI_COMMIT_BRANCH =~ /doc/
       when: never
@@ -22,41 +25,21 @@
         using Printf
         @printf "Test coverage %.2f%%\n" 100c / t'
 
-Julia 1.6:
-  interruptible: true
+test:
+  parallel:
+    matrix:
+      - IMAGE:
+          - julia:1.7
+          - julia:1.8
+  image: $IMAGE
+  extends:
+    - .script
+
+
+test-coverage:
   image: julia:1.6
+  variables:
+    COVERAGE: "true"
   extends:
     - .script
     - .coverage
-
-pages:
-  interruptible: true
-  image: julia:1.6
-  stage: deploy
-  before_script:
-    # workaround for https://github.com/JuliaDocs/Documenter.jl/issues/686
-    - apt-get -qq update; apt-get -y install git
-  script:
-    - |
-      julia --project=docs -e '
-        using Pkg
-        Pkg.develop(PackageSpec(path=pwd()))
-        Pkg.instantiate()
-        using Documenter: doctest
-        using DifferentialRiccatiEquations
-        doctest(DifferentialRiccatiEquations)
-        include("docs/make.jl")'
-    - mkdir -p public
-    - mv docs/build public/dev
-  artifacts:
-    paths:
-      - public
-  rules:
-    # merge request pipeline:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: manual
-    # skip branch pipeline, if there happens to be a MR pipeline:
-    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
-      when: never
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $CI_COMMIT_BRANCH =~ /doc/
