@@ -1,10 +1,13 @@
+default:
+  interruptible: true
+
 .script:
   script:
     - |
-      julia --project=@. -e '
+      julia --project=@. -e "
         using Pkg
         Pkg.build()
-        Pkg.test(coverage=true)'
+        Pkg.test(coverage=${COVERAGE-false})"
   rules:
     - if: $CI_COMMIT_BRANCH =~ /doc/
       when: never
@@ -22,9 +25,21 @@
         using Printf
         @printf "Test coverage %.2f%%\n" 100c / t'
 
-Julia 1.6:
-  interruptible: true
+test:
+  parallel:
+    matrix:
+      - IMAGE:
+          - julia:1.7
+          - julia:1.8
+  image: $IMAGE
+  extends:
+    - .script
+
+
+test-coverage:
   image: julia:1.6
+  variables:
+    COVERAGE: "true"
   extends:
     - .script
     - .coverage
