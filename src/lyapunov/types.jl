@@ -1,3 +1,5 @@
+# This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
+
 """
 Generalized algebraic Lyapunov equation
 

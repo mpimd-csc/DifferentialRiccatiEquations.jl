@@ -1,3 +1,5 @@
+# This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
+
 """
     LowRankUpdate{TA,T,TU,TV}(A::TA, α::T, U::TU, V::TV)
 
