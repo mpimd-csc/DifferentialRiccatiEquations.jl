@@ -58,6 +58,7 @@ The easiest setting is perhaps the dense one,
 i.e. the system matrices `E`, `A`, `B`, and `C`
 as well as the solution trajectory `X` are dense.
 First, load the system matrices from e.g. `test/Rail371.mat`
+(see [License](#license) section below)
 and define the problem parameters.
 
 ```julia
@@ -125,3 +126,17 @@ sol_lr = solve(prob_lr, Ros1(); dt=-100)
 > The type of the initial value, `X0` or `X0_lr`,
 > dictates the type used for the whole trajectory, `sol.X` and `sol_lr.X`.
 
+# License
+
+The DifferentialRiccatiEquations package is licensed under [MIT], see `LICENSE`.
+
+The `test/Rail371.mat` data file stems from [BennerSaak2005] and is licensed under [CC-BY-4.0].
+See [MOR WIKI] for further information.
+
+> **Warning**
+> The output matrix `C` of the included configuration differs from all the other configurations hosted at [MOR WIKI] by a factor of 10.
+
+[BennerSaak2005]: http://nbn-resolving.de/urn:nbn:de:swb:ch1-200601597
+[CC-BY-4.0]: https://spdx.org/licenses/CC-BY-4.0.html
+[MIT]: https://spdx.org/licenses/MIT.html
+[MOR Wiki]: http://modelreduction.org/index.php/Steel_Profile
