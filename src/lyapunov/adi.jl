@@ -3,13 +3,13 @@
 function CommonSolve.solve(
     prob::GALEProblem{LDLᵀ{TL,TD}},
     ::ADI;
-    nsteps=100,
-    rtol=size(prob.A, 1) * eps(),
+    maxiters=100,
+    reltol=size(prob.A, 1) * eps(),
 ) where {TL,TD}
     @unpack E, A, C = prob
     G, S = C
     ρ(X) = norm((X'X)*S) # Frobenius
-    atol = rtol * ρ(G)
+    abstol = reltol * ρ(G)
 
     # Compute initial shift parameters
     μ::Vector{ComplexF64} = qshifts(E, A, G)
@@ -63,9 +63,9 @@ function CommonSolve.solve(
         end
 
         ρW = ρ(W)
-        ρW <= atol && break
-        if i > nsteps
-            @warn "ADI did not converge" residual=ρW atol
+        ρW <= abstol && break
+        if i > maxiters
+            @warn "ADI did not converge" residual=ρW abstol maxiters
             break
         end
     end
@@ -73,7 +73,7 @@ function CommonSolve.solve(
     _, D = X # run compression, if necessary
 
     i -= 1 # actual number of ADI steps performed
-    @debug "ADI done" i nsteps residual=ρW atol rank(X) extrema(D)
+    @debug "ADI done" i maxiters residual=ρW abstol rank(X) extrema(D)
 
     return X
 end
