@@ -55,8 +55,11 @@ _factorize(X) = factorize(X)
 function _factorize(X::AbstractSparseMatrixCSC)
     F = factorize(X)
     F isa Diagonal || return F
-    # If `F` is a `Diagonal`, its diagonal will be a sparse vector.
-    # Solving with a dense diagonal has better performance.
+    # If `F` is a `Diagonal`, its diagonal `F.diag` will be a `SparseVector`.
+    # Given that `F` defines an invertible operator, its diagonal is effectively
+    # a dense vector. In this setting, the sparse vector type incurs a certain
+    # runtime overhead when solving linear systems in `F` as compared to a dense
+    # vector type. Get rid of this overhead:
     D = Diagonal(Vector(F.diag))
     return D
 end
