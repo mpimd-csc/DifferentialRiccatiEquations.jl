@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - given-names: Jonas
+    family-names: Schulze
+    orcid: https://orcid.org/0000-0002-2086-7686
+type: software
+title: DifferentialRiccatiEquations.jl
+license: MIT
+version: 0.2.2
+date-released: 2022-03-11
+url: https://github.com/mpimd-csc/DifferentialRiccatiEquations.jl
+preferred-citation:
+  type: mastersthesis
+  authors:
+    - given-names: Jonas
+      family-names: Schulze
+      orcid: https://orcid.org/0000-0002-2086-7686
+  doi: "10.5281/zenodo.7843198"
+  title: >-
+    A Low-Rank Parareal Solver for
+    Differential Riccati Equations
+    Written in Julia
+  year: 2022
+
