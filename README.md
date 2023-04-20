@@ -30,18 +30,35 @@ The ADI uses the self-generating parameters described by [Kuerschner2016].
 [Kuerschner2016]: https://hdl.handle.net/11858/00-001M-0000-0029-CE18-2
 [LangEtAl2015]: https://doi.org/10.1016/j.laa.2015.04.006
 
-The user interface is modeled after [CommonSolve.jl] by providing the `GDREProblem` problem type
+The user interface hooks into [CommonSolve.jl] by providing the `GDREProblem` problem type
 as well as the `Ros1`, `Ros2`, `Ros3`, and `Ros4` solver types.
 
 [CommonSolve.jl]: https://github.com/SciML/CommonSolve.jl
 
-# Demos
+# Getting started
+
+The package can be installed from Julia's REPL:
+
+```
+pkg> add git@gitlab.mpi-magdeburg.mpg.de:jschulze/DifferentialRiccatiEquations.jl.git
+```
+
+To run the following demos, you further need the following packages and standard libraries:
+
+```
+pkg> add LinearAlgebra MAT SparseArrays UnPack
+```
+
+What follows is a slightly more hands-on version of `test/rail.jl`.
+Please refer to the latter for missing details.
+
 ## Dense formulation
 
 The easiest setting is perhaps the dense one,
 i.e. the system matrices `E`, `A`, `B`, and `C`
 as well as the solution trajectory `X` are dense.
 First, load the system matrices from e.g. `test/Rail371.mat`
+(see [License](#license) section below)
 and define the problem parameters.
 
 ```julia
@@ -109,3 +126,17 @@ sol_lr = solve(prob_lr, Ros1(); dt=-100)
 > The type of the initial value, `X0` or `X0_lr`,
 > dictates the type used for the whole trajectory, `sol.X` and `sol_lr.X`.
 
+# License
+
+The DifferentialRiccatiEquations package is licensed under [MIT], see `LICENSE`.
+
+The `test/Rail371.mat` data file stems from [BennerSaak2005] and is licensed under [CC-BY-4.0].
+See [MOR Wiki] for further information.
+
+> **Warning**
+> The output matrix `C` of the included configuration differs from all the other configurations hosted at [MOR Wiki] by a factor of 10.
+
+[BennerSaak2005]: http://nbn-resolving.de/urn:nbn:de:swb:ch1-200601597
+[CC-BY-4.0]: https://spdx.org/licenses/CC-BY-4.0.html
+[MIT]: https://spdx.org/licenses/MIT.html
+[MOR Wiki]: http://modelreduction.org/index.php/Steel_Profile

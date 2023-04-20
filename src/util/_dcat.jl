@@ -1,3 +1,5 @@
+# This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
+
 _dcat(::Type{T}, X, Xs...) where {T} = _dcat(T, (X, Xs...))
 
 function _dcat(::Type{T}, Xs) where {T}
