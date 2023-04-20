@@ -131,10 +131,10 @@ sol_lr = solve(prob_lr, Ros1(); dt=-100)
 The DifferentialRiccatiEquations package is licensed under [MIT], see `LICENSE`.
 
 The `test/Rail371.mat` data file stems from [BennerSaak2005] and is licensed under [CC-BY-4.0].
-See [MOR WIKI] for further information.
+See [MOR Wiki] for further information.
 
 > **Warning**
-> The output matrix `C` of the included configuration differs from all the other configurations hosted at [MOR WIKI] by a factor of 10.
+> The output matrix `C` of the included configuration differs from all the other configurations hosted at [MOR Wiki] by a factor of 10.
 
 [BennerSaak2005]: http://nbn-resolving.de/urn:nbn:de:swb:ch1-200601597
 [CC-BY-4.0]: https://spdx.org/licenses/CC-BY-4.0.html
