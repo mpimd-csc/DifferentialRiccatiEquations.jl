@@ -91,7 +91,11 @@ end
 orth(N::SparseMatrixCSC) = orth(Matrix(N))
 
 function orth(N::Matrix{T}) where {T}
-    QR = qr(N, Val(true)) # pivoted
+    if VERSION < v"1.7"
+        QR = qr(N, Val(true)) # pivoted
+    else
+        QR = qr(N, ColumnNorm())
+    end
     R = QR.R
     # TODO: Find reference! As of LAPACK 3.1.2 or so,
     # the diagonal of R is sorted with decreasing absolute value,

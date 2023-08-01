@@ -160,7 +160,11 @@ function compress!(X::LDLᵀ{TL,TD}) where {TL,TD}
     concatenate!(X)
     L = only(X.Ls)
     D = only(X.Ds)
-    Q, R, p = qr(L, Val(true)) # pivoting
+    if VERSION < v"1.7"
+        Q, R, p = qr(L, Val(true)) # pivoting
+    else
+        Q, R, p = qr(L, ColumnNorm())
+    end
 
     ip = invperm(p)
     RΠᵀ = R[:,ip]
