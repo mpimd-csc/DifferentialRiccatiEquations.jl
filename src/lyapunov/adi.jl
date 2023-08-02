@@ -3,22 +3,24 @@
 function CommonSolve.solve(
     prob::GALEProblem{LDLᵀ{TL,TD}},
     ::ADI;
+    initial_guess::LDLᵀ{TL,TD}=zero(prob.C),
     maxiters=100,
     reltol=size(prob.A, 1) * eps(),
 ) where {TL,TD}
     @unpack E, A, C = prob
     G, S = C
-    ρ(X) = norm((X'X)*S) # Frobenius
-    abstol = reltol * ρ(G)
+    ρ(X, Y) = norm((X'X)*Y) # Frobenius
+    abstol = reltol * ρ(G, S) # use same tolerance as if initial_guess=zero(C)
 
     # Compute initial shift parameters
     μ::Vector{ComplexF64} = qshifts(E, A, G)
 
+    # Compute initial residual
+    X::LDLᵀ{TL,TD} = initial_guess::LDLᵀ{TL,TD}
+    R::TL, T::TD   = initial_residual(prob, X)::LDLᵀ{TL,TD}
+
     # Perform actual ADI
     i = 1
-    n = size(G, 1)
-    X::LDLᵀ{TL,TD} = zero(C)
-    R::TL = G # residual
     local V, V₁, V₂ # ADI increments
     local ρR # norm of residual
     while true
@@ -36,7 +38,7 @@ function CommonSolve.solve(
         end
 
         # Continue with ADI:
-        Y = (-2real(μ[i]) * S)::TD
+        Y = (-2real(μ[i]) * T)::TD
         if isreal(μ[i])
             μᵢ = real(μ[i])
             F = A' + μᵢ*E
@@ -62,7 +64,7 @@ function CommonSolve.solve(
             i += 2
         end
 
-        ρR = ρ(R)
+        ρR = ρ(R, T)
         ρR <= abstol && break
         if i > maxiters
             @warn "ADI did not converge" residual=ρR abstol maxiters
@@ -73,9 +75,35 @@ function CommonSolve.solve(
     _, D = X # run compression, if necessary
 
     i -= 1 # actual number of ADI steps performed
-    @debug "ADI done" i maxiters residual=ρR abstol rank(X) extrema(D)
+    @debug "ADI done" i maxiters residual=ρR abstol rank(X) rank_initial_guess=rank(initial_guess) rank_rhs=rank(C) rank_residual=size(R)
 
     return X
+end
+
+function initial_residual(
+    prob::GALEProblem{LDLᵀ{TL,TD}},
+    initial_guess::LDLᵀ{TL,TD},
+) where {TL,TD}
+
+    @unpack E, A, C = prob
+    G, S = C
+    L, D = initial_guess
+    n_G = size(G, 2)
+    n_0 = size(L, 2)
+    dim = n_G + 2n_0
+    dim == n_G && return C
+
+    R::TL = _hcat(TL, G, E'L, A'L)
+    T::TD = _zeros(TD, dim, dim)
+    i1 = 1:n_G
+    i2 = (1:n_0) .+ n_G
+    i3 = i2 .+ n_0
+    T[i1, i1] = S
+    T[i3, i2] = D
+    T[i2, i3] = D
+
+    R̃ = LDLᵀ(R, T)::LDLᵀ{TL,TD}
+    compress!(R̃) # unconditionally
 end
 
 function qshifts(E, A, N::AbstractMatrix{<:Real})

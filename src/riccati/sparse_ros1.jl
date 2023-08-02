@@ -36,7 +36,7 @@ function _solve(
 
         # Update X
         lyap = GALEProblem(E, F, R)
-        X = solve(lyap, ADI())
+        X = solve(lyap, ADI(); initial_guess=X)
         save_state && push!(Xs, X)
 
         # Update K
