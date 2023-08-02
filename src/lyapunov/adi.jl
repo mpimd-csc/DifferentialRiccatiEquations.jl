@@ -36,14 +36,14 @@ function CommonSolve.solve(
         end
 
         # Continue with ADI:
-        Y::TD = -2real(μ[i]) * S
+        Y = (-2real(μ[i]) * S)::TD
         if isreal(μ[i])
             μᵢ = real(μ[i])
             F = A' + μᵢ*E
-            V = F \ R
+            V = (F \ R)::TL
 
             X += (V, Y)
-            R -= 2μ[i] * (E'*V)
+            R -= (2μᵢ * (E'*V))::TL
             i += 1
         else
             @assert μ[i+1] ≈ conj(μ[i])
@@ -58,7 +58,7 @@ function CommonSolve.solve(
             V₁ = √2 * V′
             V₂ = sqrt(2δ^2 + 2) * Vᵢ
             X = X + (V₁, Y) + (V₂, Y)
-            R -= 4real(μ[i]) * (E'*V′)
+            R -= (4real(μ[i]) * (E'*V′))::TL
             i += 2
         end
 
