@@ -18,11 +18,11 @@ function CommonSolve.solve(
     i = 1
     n = size(G, 1)
     X::LDLᵀ{TL,TD} = zero(C)
-    W::TL = G
+    R::TL = G # residual
     local V, V₁, V₂ # ADI increments
-    local ρW # norm of residual
+    local ρR # norm of residual
     while true
-        i % 5 == 0 && @debug "ADI" i rank(X) ρW
+        i % 5 == 0 && @debug "ADI" i rank(X) residual=ρR
         # If we exceeded the shift parameters, compute new ones:
         if i > length(μ)
             @debug "Computing new shifts" i
@@ -40,16 +40,16 @@ function CommonSolve.solve(
         if isreal(μ[i])
             μᵢ = real(μ[i])
             F = A' + μᵢ*E
-            V = F \ W
+            V = F \ R
 
             X += (V, Y)
-            W -= 2μ[i] * (E'*V)
+            R -= 2μ[i] * (E'*V)
             i += 1
         else
             @assert μ[i+1] ≈ conj(μ[i])
             μᵢ = μ[i]
             F = A' + μᵢ*E
-            V = F \ W
+            V = F \ R
 
             δ = real(μ[i]) / imag(μ[i])
             Vᵣ = real(V)
@@ -58,14 +58,14 @@ function CommonSolve.solve(
             V₁ = √2 * V′
             V₂ = sqrt(2δ^2 + 2) * Vᵢ
             X = X + (V₁, Y) + (V₂, Y)
-            W -= 4real(μ[i]) * (E'*V′)
+            R -= 4real(μ[i]) * (E'*V′)
             i += 2
         end
 
-        ρW = ρ(W)
-        ρW <= abstol && break
+        ρR = ρ(R)
+        ρR <= abstol && break
         if i > maxiters
-            @warn "ADI did not converge" residual=ρW abstol maxiters
+            @warn "ADI did not converge" residual=ρR abstol maxiters
             break
         end
     end
@@ -73,7 +73,7 @@ function CommonSolve.solve(
     _, D = X # run compression, if necessary
 
     i -= 1 # actual number of ADI steps performed
-    @debug "ADI done" i maxiters residual=ρW abstol rank(X) extrema(D)
+    @debug "ADI done" i maxiters residual=ρR abstol rank(X) extrema(D)
 
     return X
 end
