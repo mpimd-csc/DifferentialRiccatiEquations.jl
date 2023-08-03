@@ -169,17 +169,18 @@ function compress!(X::LDLᵀ{TL,TD}) where {TL,TD}
     ip = invperm(p)
     RΠᵀ = R[:,ip]
     S = Symmetric(RΠᵀ*D*(RΠᵀ)')
-    λ, V = eigen(S; sortby=-)
+    λ, V = eigen(S; sortby = x -> -abs(x))
 
     # only use "large" eigenvalues,
     # cf. [Kürschner2016, p. 94]
-    ε = length(λ) * eps()
-    λmax = max(1, λ[1])
-    r = something(findlast(>=(ε*λmax), λ), 0)
+    # (modified to retain negative ones)
+    ε = max(1, abs(λ[1])) * length(λ) * eps()
+    r = something(findlast(l -> abs(l) >= ε, λ), 0)
+
+    @debug "compress!(::LDLᵀ)" λ[1] λ[end] count(>(ε), λ) count(<(-ε), λ) oldrank=size(D,1) newrank=r
 
     Vᵣ = @view V[:, 1:r]
     X.Ls[1] = (Q * Vᵣ)::TL
     X.Ds[1] = _diagm(TD, λ[1:r])::TD
-    @debug "Compressed LDLᵀ" oldrank=size(D, 1) newrank=r
     return X
 end
