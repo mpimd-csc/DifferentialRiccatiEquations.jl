@@ -72,13 +72,11 @@ end
     @testset "Dense D" begin
         smoketest(sprob1, alg)
         sol1 = solve(sprob1, alg; dt=Δt(5))
-        @test norm(ref.K[end] - sol1.K[end]) < 2e-3
-        @test_broken norm(ref.K[end] - sol1.K[end]) < ε
+        @test norm(ref.K[end] - sol1.K[end]) < ε
     end
     @testset "Sparse D" begin
         smoketest(sprob2, alg)
         sol2 = solve(sprob2, alg; dt=Δt(5))
-        @test norm(ref.K[end] - sol2.K[end]) < 2e-3
-        @test_broken norm(ref.K[end] - sol2.K[end]) < ε
+        @test norm(ref.K[end] - sol2.K[end]) < ε
     end
 end
