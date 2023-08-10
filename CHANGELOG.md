@@ -1,5 +1,12 @@
 # DEV
 
+# v0.3
+
+* Add license
+* Improve documentation
+* Breaking: Rename keyword arguments of `solve(::GALEProblem, ::ADI; nsteps, rtol)` to `maxiters` and `reltol`
+* Rename default branch to `main`
+
 # v0.2.2
 
 * Fix ADI (425d4001112fcff88b30c58f020b106e10a7ef7b)
