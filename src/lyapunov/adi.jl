@@ -5,12 +5,13 @@ function CommonSolve.solve(
     ::ADI;
     maxiters=100,
     reltol=size(prob.A, 1) * eps(),
+    observer=nothing,
 ) where {TL,TD}
     @unpack E, A, C = prob
     G, S = C
     ρ(X) = norm((X'X)*S) # Frobenius
-    abstol = reltol * ρ(G)
-
+    initial_residual = ρ(G)
+    abstol = reltol * initial_residual
     # Compute initial shift parameters
     μ::Vector{ComplexF64} = qshifts(E, A, G)
 
@@ -21,6 +22,10 @@ function CommonSolve.solve(
     W::TL = G
     local V, V₁, V₂ # ADI increments
     local ρW # norm of residual
+
+    observe_gale_start!(observer, prob, ADI(), abstol, reltol)
+    observe_gale_metadata!(observer, "ADI shifts", μ)
+    observe_gale_step!(observer, 0, X, LDLᵀ(G, S), initial_residual)
     while true
         i % 5 == 0 && @debug "ADI" i rank(X) ρW
         # If we exceeded the shift parameters, compute new ones:
@@ -32,6 +37,7 @@ function CommonSolve.solve(
                 qshifts(E, A, [V₁ V₂])
             end
             @debug "Obtained $(length(μ′)) new shifts" i
+            observe_gale_metadata!(observer, "ADI shifts", μ′)
             append!(μ, μ′)
         end
 
@@ -63,8 +69,10 @@ function CommonSolve.solve(
         end
 
         ρW = ρ(W)
+        observe_gale_step!(observer, i-1, X, LDLᵀ(W, S), ρW)
         ρW <= abstol && break
         if i > maxiters
+            observe_gale_failed!(observer)
             @warn "ADI did not converge" residual=ρW abstol maxiters
             break
         end
@@ -72,9 +80,9 @@ function CommonSolve.solve(
 
     _, D = X # run compression, if necessary
 
-    i -= 1 # actual number of ADI steps performed
-    @debug "ADI done" i maxiters residual=ρW abstol rank(X) extrema(D)
-
+    iters = i - 1 # actual number of ADI steps performed
+    @debug "ADI done" i=iters maxiters residual=ρW abstol rank(X) extrema(D)
+    observe_gale_done!(observer, iters, X, LDLᵀ(W, S), ρW)
     return X
 end
 
