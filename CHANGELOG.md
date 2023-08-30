@@ -1,5 +1,7 @@
 # DEV
 
+* Fix LDLᵀ compression for indefinite objects (d6a649ad62ab6d413ce82e5a2b0090de813a33de)
+
 # v0.3
 
 * Add license
