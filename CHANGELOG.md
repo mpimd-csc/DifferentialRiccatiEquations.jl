@@ -13,14 +13,14 @@
 
 # v0.2.1
 
-* Add low-rank Ros2 (!4)
+* Add low-rank Ros2 (1345647c610c4561e0d63e8fbee65a85693d8156)
 
 # v0.2
 
 * Add LDLᵀ factorization (4811939893a98b6ebc6e442f6a85ff0dcde4b42e)
 * Add LowRankUpdate representation which supports `\` via Sherman-Morrison-Woodbury (2b00c7bf0d817973d41d883773a68db173faaaa6)
-* Add low-rank Ros1 (implicit Euler) (!1)
-* Dense solvers now support sparse `E` (!2)
+* Add low-rank Ros1 (implicit Euler) (c1d4bcf5c22fb71f85512e78c0071e58ffaf1397)
+* Dense solvers now support sparse `E` (331094d0ca4cc84f4ae2d13df41cc52b5d229663)
 
 # v0.1
 
