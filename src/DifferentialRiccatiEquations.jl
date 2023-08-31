@@ -40,6 +40,9 @@ struct DRESolution
     t
 end
 
+include("Callbacks.jl")
+using .Callbacks
+
 include("LDLt.jl")
 include("LowRankUpdate.jl")
 include("lyapunov/types.jl")
@@ -70,12 +73,14 @@ function CommonSolve.solve(
     a::Algorithm;
     dt::Real,
     save_state::Bool=false,
+    observer=nothing,
 )
     _solve(
         p,
         a;
         dt=dt,
         save_state=save_state,
+        observer=observer,
     )
 end
 

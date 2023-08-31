@@ -126,6 +126,21 @@ sol_lr = solve(prob_lr, Ros1(); dt=-100)
 > The type of the initial value, `X0` or `X0_lr`,
 > dictates the type used for the whole trajectory, `sol.X` and `sol_lr.X`.
 
+## Solver introspection / Callbacks
+
+To record information during the solution process,
+e.g. the residual norms of every ADI step at every GDRE time step,
+define a custom observer object and associated callback methods.
+Refer to the documentation of the `Callbacks` module for further information.
+
+```
+julia> import DifferentialRiccatiEquations.Callbacks
+
+help?> Callbacks
+```
+
+Note that there are currently no pre-built observers.
+
 # License
 
 The DifferentialRiccatiEquations package is licensed under [MIT], see `LICENSE`.
