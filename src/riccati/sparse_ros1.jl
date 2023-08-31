@@ -5,6 +5,7 @@ function _solve(
     ::Ros1;
     dt::Real,
     save_state::Bool,
+    observer,
 ) where {TL,TD}
     T = LDLᵀ{TL,TD}
 
@@ -23,6 +24,9 @@ function _solve(
     Ks = [K]
     sizehint!(Ks, len)
 
+    observe_gdre_start!(observer, prob, Ros1())
+    observe_gdre_step!(observer, tstops[1], X, K)
+
     for i in 2:len
         τ = tstops[i-1] - tstops[i]
 
@@ -36,7 +40,7 @@ function _solve(
 
         # Update X
         lyap = GALEProblem(E, F, R)
-        X = solve(lyap, ADI(); initial_guess=X)
+        X = solve(lyap, ADI(); observer, initial_guess=X)
         save_state && push!(Xs, X)
 
         # Update K
@@ -44,8 +48,12 @@ function _solve(
         BᵀLD = (B'*L)*D
         K = BᵀLD*(L'*E)
         push!(Ks, K)
+
+        observe_gdre_step!(observer, tstops[i], X, K)
     end
     save_state || push!(Xs, X)
+
+    observe_gdre_done!(observer)
 
     return DRESolution(Xs, Ks, tstops)
 end

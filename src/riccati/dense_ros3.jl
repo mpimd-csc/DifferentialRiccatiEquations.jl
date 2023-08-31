@@ -5,6 +5,7 @@ function _solve(
     alg::Ros3;
     dt::Real,
     save_state::Bool,
+    observer,
 )
     @unpack E, A, B, C, tspan = prob
     Ed = collect(E)
@@ -18,6 +19,9 @@ function _solve(
     K = (B'*X)*E
     Ks = [K]
     sizehint!(Ks, len)
+
+    observe_gdre_start!(observer, prob, Ros1())
+    observe_gdre_step!(observer, tstops[1], X, K)
 
     # Global parameter for the method
     γ = 7.886751345948129e-1
@@ -70,8 +74,12 @@ function _solve(
         # Update K
         K = (B'*X)*E
         push!(Ks, K)
+
+        observe_gdre_step!(observer, tstops[i], X, K)
     end
     save_state || push!(Xs, X)
+
+    observe_gdre_done!(observer)
 
     return DRESolution(Xs, Ks, tstops)
 end

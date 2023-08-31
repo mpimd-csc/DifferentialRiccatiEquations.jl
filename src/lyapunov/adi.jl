@@ -6,6 +6,7 @@ function CommonSolve.solve(
     initial_guess::LDLᵀ{TL,TD}=zero(prob.C),
     maxiters=100,
     reltol=size(prob.A, 1) * eps(),
+    observer=nothing,
 ) where {TL,TD}
     @unpack E, A, C = prob
     G, S = C
@@ -17,12 +18,17 @@ function CommonSolve.solve(
 
     # Compute initial residual
     X::LDLᵀ{TL,TD} = initial_guess::LDLᵀ{TL,TD}
-    R::TL, T::TD   = initial_residual(prob, X)::LDLᵀ{TL,TD}
+    R::TL, T::TD = initial_residual = residual(prob, X)::LDLᵀ{TL,TD}
+    initial_residual_norm = ρ(R, T)
 
     # Perform actual ADI
     i = 1
     local V, V₁, V₂ # ADI increments
     local ρR # norm of residual
+
+    observe_gale_start!(observer, prob, ADI(), abstol, reltol)
+    observe_gale_metadata!(observer, "ADI shifts", μ)
+    observe_gale_step!(observer, 0, X, initial_residual, initial_residual_norm)
     while true
         i % 5 == 0 && @debug "ADI" i rank(X) residual=ρR
         # If we exceeded the shift parameters, compute new ones:
@@ -34,6 +40,7 @@ function CommonSolve.solve(
                 qshifts(E, A, [V₁ V₂])
             end
             @debug "Obtained $(length(μ′)) new shifts" i
+            observe_gale_metadata!(observer, "ADI shifts", μ′)
             append!(μ, μ′)
         end
 
@@ -65,8 +72,10 @@ function CommonSolve.solve(
         end
 
         ρR = ρ(R, T)
+        observe_gale_step!(observer, i-1, X, LDLᵀ(R, T), ρR)
         ρR <= abstol && break
         if i > maxiters
+            observe_gale_failed!(observer)
             @warn "ADI did not converge" residual=ρR abstol maxiters
             break
         end
@@ -74,20 +83,21 @@ function CommonSolve.solve(
 
     _, D = X # run compression, if necessary
 
-    i -= 1 # actual number of ADI steps performed
-    @debug "ADI done" i maxiters residual=ρR abstol rank(X) rank_initial_guess=rank(initial_guess) rank_rhs=rank(C) rank_residual=size(R)
+    iters = i - 1 # actual number of ADI steps performed
+    @debug "ADI done" i=iters maxiters residual=ρR abstol rank(X) rank_initial_guess=rank(initial_guess) rank_rhs=rank(C) rank_residual=size(R)
+    observe_gale_done!(observer, iters, X, LDLᵀ(R, T), ρR)
 
     return X
 end
 
-function initial_residual(
+function residual(
     prob::GALEProblem{LDLᵀ{TL,TD}},
-    initial_guess::LDLᵀ{TL,TD},
+    val::LDLᵀ{TL,TD},
 ) where {TL,TD}
 
     @unpack E, A, C = prob
     G, S = C
-    L, D = initial_guess
+    L, D = val
     n_G = size(G, 2)
     n_0 = size(L, 2)
     dim = n_G + 2n_0
