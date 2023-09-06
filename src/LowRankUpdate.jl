@@ -90,6 +90,10 @@ function Base.:(+)(AUV::LowRankUpdate, E::AbstractMatrix)
 end
 
 function Base.:(*)(AUV::LowRankUpdate, X::AbstractMatrix)
+    size(X, 1) == size(X, 2) && @warn(
+        "Multiplying LowRankUpdate by square matrix; memory usage may increase severely",
+        dim = size(X, 1),
+    )
     A, α, U, V = AUV
     A*X + inv(α)*(U*(V*X))
 end
