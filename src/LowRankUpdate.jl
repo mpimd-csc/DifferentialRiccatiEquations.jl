@@ -51,6 +51,11 @@ function Base.adjoint(AUV::LowRankUpdate)
     LowRankUpdate(A', α', V', U')
 end
 
+function Matrix(AUV::LowRankUpdate)
+    A, α, U, V = AUV
+    A + inv(α) * (U * V)
+end
+
 _factorize(X) = factorize(X)
 function _factorize(X::AbstractSparseMatrixCSC)
     F = factorize(X)
@@ -82,4 +87,13 @@ function Base.:(+)(AUV::LowRankUpdate, E::AbstractMatrix)
     @assert issparse(E)
     A, α, U, V = AUV
     LowRankUpdate(A+E, α, U, V)
+end
+
+function Base.:(*)(AUV::LowRankUpdate, X::AbstractMatrix)
+    size(X, 1) == size(X, 2) && @warn(
+        "Multiplying LowRankUpdate by square matrix; memory usage may increase severely",
+        dim = size(X, 1),
+    )
+    A, α, U, V = AUV
+    A*X + inv(α)*(U*(V*X))
 end
