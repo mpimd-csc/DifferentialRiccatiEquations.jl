@@ -24,3 +24,17 @@ struct DRESolution
     K
     t
 end
+
+"""
+Generalized algebraic (continuous time) algebraic Riccati equation
+
+    Q + A'XE + E'XA - E'XGXE = 0
+"""
+struct GAREProblem{TG,TQ}
+    E
+    A
+    G::TG
+    Q::TQ
+end
+
+abstract type AlgebraicRiccatiSolver end
