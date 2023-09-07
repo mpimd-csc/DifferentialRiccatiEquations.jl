@@ -38,3 +38,4 @@ struct GAREProblem{TG,TQ}
 end
 
 abstract type AlgebraicRiccatiSolver end
+struct NewtonADI <: AlgebraicRiccatiSolver end

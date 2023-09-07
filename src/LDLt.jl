@@ -52,6 +52,33 @@ Base.iterate(::LDLᵀ, _) = nothing
 Base.size(X::LDLᵀ, i) = i <= 2 ? size(first(X.Ls), 1) : 1
 Base.size(X::LDLᵀ) = (n = size(X, 1); (n, n))
 
+"""
+    norm(::LDLᵀ)
+
+Compute the Frobenius norm of a LDLᵀ factorization.
+The technique is similar to the one described in
+
+> Benner, Li, Penzel. Numerical solution of large-scale Lyapunov equations,
+> Riccati equations, and linear-quadratic optimal control problems.
+> Numerical Linear Algebra with Applications 2008. DOI: 10.1002/nla.622
+"""
+function LinearAlgebra.norm(X::LDLᵀ)
+    # Decompose while not triggering compression.
+    concatenate!(X)
+    L = only(X.Ls)
+    D = only(X.Ds)
+    # Is pivoting necessary here?
+    if VERSION < v"1.7"
+        _, R, p = qr(L, Val(true)) # pivoting
+    else
+        _, R, p = qr(L, ColumnNorm())
+    end
+    PᵀDP = D[p, p]
+    # The Q operator of the QR decomposition does not alter the Frobenius norm.
+    # It may therefore be omitted from the matrix inside the norm.
+    norm(R * PᵀDP * R')
+end
+
 LinearAlgebra.rank(X::LDLᵀ) = sum(D -> size(D, 1), X.Ds)
 
 function Base.zero(X::LDLᵀ{TL,TD}) where {TL,TD}

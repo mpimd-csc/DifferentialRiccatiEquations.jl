@@ -36,6 +36,8 @@ struct Ros3 <: Algorithm end
 struct Ros4 <: Algorithm end
 
 include("riccati/types.jl")
+include("riccati/residual.jl")
+
 include("riccati/dense_ros1.jl")
 include("riccati/dense_ros2.jl")
 include("riccati/dense_ros3.jl")
@@ -43,6 +45,8 @@ include("riccati/dense_ros4.jl")
 
 include("riccati/lowrank_ros1.jl")
 include("riccati/lowrank_ros2.jl")
+
+include("riccati/newton-adi.jl")
 
 function CommonSolve.solve(
     p::GDREProblem,
