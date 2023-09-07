@@ -13,6 +13,13 @@ During `solve(::GALEProblem, ::LyapunovSolver; observer)`:
 * [`observe_gale_failed!`](@ref)
 * [`observe_gale_metadata!`](@ref)
 
+During `solve(::GAREProblem, ::AlgebraicRiccatiSolver; observer)`:
+
+* [`observe_gare_start!`](@ref)
+* [`observe_gare_step!`](@ref)
+* [`observe_gare_done!`](@ref)
+* [`observe_gare_failed!`](@ref)
+
 During `solve(::GDREProblem, ::Algorithm; observer)`:
 
 * [`observe_gdre_start!`](@ref)
@@ -73,6 +80,10 @@ export observe_gale_start!,
        observe_gale_done!,
        observe_gale_failed!,
        observe_gale_metadata!
+export observe_gare_start!,
+       observe_gare_step!,
+       observe_gare_done!,
+       observe_gare_failed!
 export observe_gdre_start!,
        observe_gdre_step!,
        observe_gdre_done!
@@ -168,5 +179,12 @@ observe_gdre_step!(::Any, args...) = nothing
 Notify `observer` at the end of solving the GDRE.
 """
 observe_gdre_done!(::Any) = nothing
+
+# TODO: refactor callbacks to receive problem instance:
+#       observe_start(::Handler, ::Problem, args...)
+observe_gare_start!(::Any, args...) = nothing
+observe_gare_step!(::Any, args...) = nothing
+observe_gare_done!(::Any, args...) = nothing
+observe_gare_failed!(::Any) = nothing
 
 end

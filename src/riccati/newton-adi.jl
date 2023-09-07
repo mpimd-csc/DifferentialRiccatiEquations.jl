@@ -19,8 +19,12 @@ function CommonSolve.solve(
     n = size(A, 2)
     X = LDLᵀ{TL,TD}(zeros(n, 0), zeros(0, 0)) # this is ugly
 
-    abstol = reltol * norm(Q)
+    res = Q
+    res_norm = norm(res)
+    abstol = reltol * res_norm
+
     i = 0
+    observe_gare_start!(observer, prob, NewtonADI(), abstol, reltol)
     while true
         # Compute residual
         L, D = X
@@ -30,11 +34,14 @@ function CommonSolve.solve(
         DLᵀGLD = (BᵀLD)'BᵀLD
         K = BᵀLD * (EᵀL)'
 
-        res = norm(residual(prob, X; AᵀL, EᵀL, DLᵀGLD))
-        @debug "NewtonADI" i rank(X) residual=res abstol reltol
-        res <= abstol && break
+        res = residual(prob, X; AᵀL, EᵀL, DLᵀGLD)
+        res_norm = norm(res)
+        observe_gare_step!(observer, i, X, res, res_norm)
+
+        res_norm <= abstol && break
         if i > maxiters
-            @warn "NewtonADI did not converge"
+            observe_gare_failed!(observer)
+            @warn "NewtonADI did not converge" residual=res_norm abstol maxiters
             break
         end
         i += 1
@@ -63,6 +70,6 @@ function CommonSolve.solve(
         X = solve(lyap, ADI(); maxiters=100, reltol, observer, initial_guess)
     end
 
-    @debug "NewtonADI done" steps=i
+    observe_gare_done!(observer, i, X, res, res_norm)
     X
 end
