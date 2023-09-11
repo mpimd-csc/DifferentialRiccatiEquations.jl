@@ -80,3 +80,14 @@ end
         @test norm(ref.K[end] - sol2.K[end]) < ε
     end
 end
+
+using DifferentialRiccatiEquations: residual
+
+@testset "NewtonADI()" begin
+    G = LDLᵀ(B, I)
+    Q = LDLᵀ(C', I)
+    are = GAREProblem(E, A, G, Q)
+    reltol = 1e-10
+    X = solve(are, NewtonADI(); reltol)
+    @test norm(residual(are, X)) < reltol * norm(Q)
+end
