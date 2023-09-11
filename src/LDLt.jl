@@ -67,16 +67,16 @@ function LinearAlgebra.norm(X::LDLᵀ)
     concatenate!(X)
     L = only(X.Ls)
     D = only(X.Ds)
-    # Is pivoting necessary here?
+    # TODO: use specialized TSQR ("tall and skinny QR") algorithm.
+    # TODO: evaluate whether `compress!` could share any code with `norm`.
     if VERSION < v"1.7"
-        _, R, p = qr(L, Val(true)) # pivoting
+        _, R = qr(L, Val(false)) # no pivoting
     else
-        _, R, p = qr(L, ColumnNorm())
+        _, R = qr(L, NoPivot())
     end
-    PᵀDP = D[p, p]
     # The Q operator of the QR decomposition does not alter the Frobenius norm.
     # It may therefore be omitted from the matrix inside the norm.
-    norm(R * PᵀDP * R')
+    norm(R * D * R')
 end
 
 LinearAlgebra.rank(X::LDLᵀ) = sum(D -> size(D, 1), X.Ds)
