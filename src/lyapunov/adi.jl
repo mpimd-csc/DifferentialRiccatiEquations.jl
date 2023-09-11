@@ -13,9 +13,8 @@ function CommonSolve.solve(
     initial_guess = @something initial_guess zero(prob.C)
 
     @unpack E, A, C = prob
-    G, S = C
-    ρ(X, Y) = norm((X'X)*Y) # Frobenius
-    abstol = reltol * ρ(G, S) # use same tolerance as if initial_guess=zero(C)
+    G, _ = C
+    abstol = reltol * norm(C) # use same tolerance as if initial_guess=zero(C)
 
     # Compute initial shift parameters
     μ::Vector{ComplexF64} = qshifts(E, A, G)
@@ -23,7 +22,7 @@ function CommonSolve.solve(
     # Compute initial residual
     X::LDLᵀ{TL,TD} = initial_guess::LDLᵀ{TL,TD}
     R::TL, T::TD = initial_residual = residual(prob, X)::LDLᵀ{TL,TD}
-    initial_residual_norm = ρ(R, T)
+    initial_residual_norm = norm(initial_residual)
 
     # Perform actual ADI
     i = 1
@@ -74,8 +73,9 @@ function CommonSolve.solve(
             i += 2
         end
 
-        ρR = ρ(R, T)
-        observe_gale_step!(observer, i-1, X, LDLᵀ(R, T), ρR)
+        residual = LDLᵀ(R, T)
+        ρR = norm(residual)
+        observe_gale_step!(observer, i-1, X, residual, ρR)
         @debug "ADI" i rank(X) residual=ρR
         ρR <= abstol && break
         if i > maxiters

@@ -54,6 +54,7 @@ function CommonSolve.solve(
     dt::Real,
     save_state::Bool=false,
     observer=nothing,
+    kwargs...,
 )
     _solve(
         p,
@@ -61,6 +62,7 @@ function CommonSolve.solve(
         dt=dt,
         save_state=save_state,
         observer=observer,
+        kwargs...,
     )
 end
 
