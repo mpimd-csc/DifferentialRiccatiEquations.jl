@@ -5,6 +5,7 @@ function _solve(
     ::Ros1;
     dt::Real,
     save_state::Bool,
+    adi_initprev_from_step::Int=1,
     observer,
 ) where {TL,TD}
     T = LDLᵀ{TL,TD}
@@ -40,7 +41,8 @@ function _solve(
 
         # Update X
         lyap = GALEProblem(E, F, R)
-        X = solve(lyap, ADI(); observer, initial_guess=X)
+        initial_guess = i > adi_initprev_from_step ? X : nothing
+        X = solve(lyap, ADI(); observer, initial_guess)
         save_state && push!(Xs, X)
 
         # Update K
