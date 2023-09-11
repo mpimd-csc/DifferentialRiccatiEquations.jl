@@ -15,31 +15,6 @@ using SparseArrays: SparseArrays,
                     spzeros,
                     spdiagm
 
-"""
-Generalized differential Riccati equation
-
-    E'ẊE = C'C + A'XE + E'XA - E'XBB'XE
-    X(t0) = X0
-
-having the fields `E`, `A`, `C`, `X0`, and `tspan`=`(t0, tf)`.
-"""
-struct GDREProblem{XT}
-    E
-    A
-    B
-    C
-    X0::XT
-    tspan
-
-    GDREProblem(E, A, B, C, X0::XT, tspan) where {XT} = new{XT}(E, A, B, C, X0, tspan)
-end
-
-struct DRESolution
-    X
-    K
-    t
-end
-
 include("Callbacks.jl")
 using .Callbacks
 
@@ -60,13 +35,18 @@ struct Ros2 <: Algorithm end
 struct Ros3 <: Algorithm end
 struct Ros4 <: Algorithm end
 
+include("riccati/types.jl")
+include("riccati/residual.jl")
+
 include("riccati/dense_ros1.jl")
 include("riccati/dense_ros2.jl")
 include("riccati/dense_ros3.jl")
 include("riccati/dense_ros4.jl")
 
-include("riccati/sparse_ros1.jl")
-include("riccati/sparse_ros2.jl")
+include("riccati/lowrank_ros1.jl")
+include("riccati/lowrank_ros2.jl")
+
+include("riccati/newton-adi.jl")
 
 function CommonSolve.solve(
     p::GDREProblem,
@@ -85,8 +65,8 @@ function CommonSolve.solve(
 end
 
 export solve
-export GDREProblem
-export Ros1, Ros2, Ros3, Ros4
+export GDREProblem, Ros1, Ros2, Ros3, Ros4
+export GAREProblem, NewtonADI
 export LDLᵀ, concatenate!, compress!
 
 end

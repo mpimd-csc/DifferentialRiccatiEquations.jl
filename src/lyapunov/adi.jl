@@ -1,13 +1,17 @@
 # This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
 
+using Compat: @something
+
 function CommonSolve.solve(
     prob::GALEProblem{LDLᵀ{TL,TD}},
     ::ADI;
-    initial_guess::LDLᵀ{TL,TD}=zero(prob.C),
+    initial_guess::Union{Nothing,LDLᵀ{TL,TD}}=nothing,
     maxiters=100,
     reltol=size(prob.A, 1) * eps(),
     observer=nothing,
 ) where {TL,TD}
+    initial_guess = @something initial_guess zero(prob.C)
+
     @unpack E, A, C = prob
     G, S = C
     ρ(X, Y) = norm((X'X)*Y) # Frobenius
@@ -30,7 +34,6 @@ function CommonSolve.solve(
     observe_gale_metadata!(observer, "ADI shifts", μ)
     observe_gale_step!(observer, 0, X, initial_residual, initial_residual_norm)
     while true
-        i % 5 == 0 && @debug "ADI" i rank(X) residual=ρR
         # If we exceeded the shift parameters, compute new ones:
         if i > length(μ)
             @debug "Computing new shifts" i
@@ -73,6 +76,7 @@ function CommonSolve.solve(
 
         ρR = ρ(R, T)
         observe_gale_step!(observer, i-1, X, LDLᵀ(R, T), ρR)
+        @debug "ADI" i rank(X) residual=ρR
         ρR <= abstol && break
         if i > maxiters
             observe_gale_failed!(observer)

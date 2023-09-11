@@ -15,6 +15,7 @@ k = 2
     @test M isa Matrix{Float64}
     @test size(M) == (n, n)
     @test M ≈ L*D*L'
+    @test norm(M) ≈ norm(X)
 end
 
 function sample(n, k)
