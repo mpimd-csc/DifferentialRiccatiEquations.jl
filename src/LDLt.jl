@@ -29,6 +29,8 @@ struct LDLᵀ{TL,TD}
     LDLᵀ{TL,TD}(L::Vector{TL}, D::Vector{TD}) where {TL, TD} = new{TL,TD}(L, D)
 end
 
+Base.eltype(::Type{LDLᵀ{TL,TD}}) where {TL,TD} = promote_type(eltype(TL), eltype(TD))
+
 # Mainly for testing
 function Base.Matrix(X::LDLᵀ)
     @unpack Ls, Ds = X

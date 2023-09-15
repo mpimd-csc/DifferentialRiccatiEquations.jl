@@ -15,6 +15,11 @@ using SparseArrays: SparseArrays,
                     spzeros,
                     spdiagm
 
+include("Stuff.jl")
+
+include("Shifts.jl")
+using .Shifts
+
 include("Callbacks.jl")
 using .Callbacks
 
