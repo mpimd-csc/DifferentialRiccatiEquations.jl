@@ -3,7 +3,7 @@
 using Test
 using DifferentialRiccatiEquations
 using SparseArrays
-using DifferentialRiccatiEquations: orth
+using DifferentialRiccatiEquations.Stuff: orth
 
 @testset "DifferentialRiccatiEquations.jl" begin
     @testset "LDLᵀ" begin include("LDLt.jl") end
