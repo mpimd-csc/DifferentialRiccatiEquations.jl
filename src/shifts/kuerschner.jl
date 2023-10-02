@@ -2,6 +2,7 @@
 
 using LinearAlgebra, SparseArrays
 using UnPack
+using Compat: keepat!
 
 """
     KuerschnerV(prob, u::Int)
