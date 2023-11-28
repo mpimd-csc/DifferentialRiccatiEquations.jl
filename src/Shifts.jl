@@ -52,5 +52,6 @@ function compute_next_shifts! end
 
 using ..Stuff
 include("shifts/kuerschner.jl")
+include("shifts/penzl.jl")
 
 end
