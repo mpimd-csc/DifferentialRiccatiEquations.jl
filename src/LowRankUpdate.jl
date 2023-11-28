@@ -35,7 +35,7 @@ For sparse `A`, return a [`LowRankUpdate`](@ref).
 """
 lr_update
 
-lr_update(A::Matrix, α, U, V) = A + (inv(α)*U)*V
+lr_update(A::Matrix{T}, α, U, V) where {T} = A + (inv(α)*U)*V
 lr_update(A::AbstractSparseMatrixCSC, α, U, V) = LowRankUpdate(A, α, U, V)
 
 Base.iterate(AUV::LowRankUpdate) = AUV.A, Val(:a)
