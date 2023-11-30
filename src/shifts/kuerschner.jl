@@ -5,24 +5,28 @@ using UnPack
 using Compat: keepat!
 
 """
-    KuerschnerV(prob, u::Int)
+    Shifts.KuerschnerV(u::Int)
 
 Compute shift parameters based on the `u` most recent increments comprising the solution candidate to `prob`.
 
 It is recommended to use even `u > 1`, such that an ADI double-step can properly be accounted for.
 """
-mutable struct KuerschnerV <: ShiftIterator
+struct KuerschnerV <: Strategy
+    n_history::Int
+end
+
+mutable struct KuerschnerVIterator
     prob
     n_history::Int
     Vs::Vector{Any}
-    shifts::Vector{ComplexF64}
-
-    function KuerschnerV(prob, u::Int)
-        new(prob, u, [], ComplexF64[])
-    end
 end
 
-function update_shifts!(it::KuerschnerV, _, R, Vs...)
+function init(strategy::KuerschnerV, prob)
+    it = KuerschnerVIterator(prob, strategy.n_history, [])
+    BufferedIterator(it)
+end
+
+function update!(it::KuerschnerVIterator, _, R, Vs...)
     isempty(Vs) && push!(it.Vs, R)
     append!(it.Vs, Vs)
     lst = length(it.Vs)
@@ -31,7 +35,7 @@ function update_shifts!(it::KuerschnerV, _, R, Vs...)
     return
 end
 
-function compute_next_shifts!(it::KuerschnerV)
+function take_many!(it::KuerschnerVIterator)
     @unpack E, A = it.prob
     @unpack Vs = it
 

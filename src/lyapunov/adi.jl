@@ -9,7 +9,7 @@ function CommonSolve.solve(
     maxiters=100,
     reltol=size(prob.A, 1) * eps(),
     observer=nothing,
-    shifts=nothing,
+    shifts::Shifts.Strategy=Shifts.KuerschnerV(1),
 ) where {TL,TD}
     initial_guess = @something initial_guess zero(prob.C)
 
@@ -23,8 +23,8 @@ function CommonSolve.solve(
     initial_residual_norm = norm(initial_residual)
 
     # Initialize shifts
-    shifts = @something shifts Shifts.KuerschnerV(prob, 1)
-    update_shifts!(shifts, initial_guess, G)
+    shifts = Shifts.init(shifts, prob)
+    Shifts.update!(shifts, X, R)
 
     # Perform actual ADI
     i = 1
@@ -34,7 +34,7 @@ function CommonSolve.solve(
     observe_gale_start!(observer, prob, ADI(), abstol, reltol)
     observe_gale_step!(observer, 0, X, initial_residual, initial_residual_norm)
     while true
-        μ = get_next_shift!(shifts)
+        μ = Shifts.take!(shifts)
         observe_gale_metadata!(observer, "ADI shifts", μ)
 
         # Continue with ADI:
@@ -48,16 +48,16 @@ function CommonSolve.solve(
             R -= (2μᵢ * (E'*V))::TL
             i += 1
 
-            update_shifts!(shifts, X, R, V)
+            Shifts.update!(shifts, X, R, V)
         else
-            μ_next = get_next_shift!(shifts)
+            μ_next = Shifts.take!(shifts)
             @assert μ_next ≈ conj(μ)
             observe_gale_metadata!(observer, "ADI shifts", μ_next)
             μᵢ = μ
             F = A' + μᵢ*E
             V = F \ R
 
-            δ = real(μ[i]) / imag(μ[i])
+            δ = real(μᵢ) / imag(μᵢ)
             Vᵣ = real(V)
             Vᵢ = imag(V)
             V′ = Vᵣ + δ*Vᵢ
@@ -67,7 +67,7 @@ function CommonSolve.solve(
             R -= (4real(μ) * (E'*V′))::TL
             i += 2
 
-            update_shifts!(shifts, X, R, V₁, V₂)
+            Shifts.update!(shifts, X, R, V₁, V₂)
         end
 
         residual = LDLᵀ(R, T)

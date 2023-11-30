@@ -6,26 +6,21 @@ using ArnoldiMethod: partialschur
 using LinearMaps: InverseMap, LinearMap
 
 """
-    Penzl(prob, nshifts, k₊, k₋)
+    Shifts.Penzl(nshifts, k₊, k₋)
 
 Compute heuristic or sub-optimal shift parameters following Algorithm 5.1 of
 
 > Penzl: A cyclic low rank Smith method for large sparse Lyapunov equations,
 > SIAM J. Sci. Comput., 21 (2000), pp. 1401-1418. DOI: 10.1137/S1064827598347666
 """
-mutable struct Penzl <: ShiftIterator
-    shifts
-
-    function Penzl(args...)
-        shifts = compute_penzl_shifts(args...)
-        it = Stateful(cycle(shifts))
-        new(it)
-    end
+struct Penzl <: Strategy
+    nshifts::Int
+    k₊::Int
+    k₋::Int
 end
 
-get_next_shift!(it::Penzl) = popfirst!(it.shifts)
-
-function compute_penzl_shifts(prob, nshifts::Int, k₊::Int, k₋::Int)
+function init(strategy::Penzl, prob)
+    @unpack nshifts, k₊, k₋ = strategy
     @unpack E, A = prob
 
     # TODO: Make solver configurable.
@@ -55,7 +50,8 @@ function compute_penzl_shifts(prob, nshifts::Int, k₊::Int, k₋::Int)
             append!(P, (p, conj(p)))
         end
     end
-    return P
+
+    return Stateful(cycle(P))
 end
 
 function compute_ritz_values(A, n::Int)
