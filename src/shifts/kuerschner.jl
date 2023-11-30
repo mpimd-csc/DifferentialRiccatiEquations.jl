@@ -10,6 +10,11 @@ using Compat: keepat!
 Compute shift parameters based on the `u` most recent increments comprising the solution candidate to `prob`.
 
 It is recommended to use even `u > 1`, such that an ADI double-step can properly be accounted for.
+
+See section 5.3.1 of
+
+> Kürschner: Efficient low-rank solution of large-scale matrix equations.
+> Otto-von-Guericke-Universität Magdeburg (2016).
 """
 struct KuerschnerV <: Strategy
     n_history::Int
