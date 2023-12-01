@@ -15,6 +15,9 @@ Shifts.take!(::FortyTwo) = 42
 """
 module Shifts
 
+export Cyclic, Wrapped
+export Penzl, KuerschnerV
+
 abstract type Strategy end
 
 """
@@ -50,30 +53,8 @@ Default: `popfirst!(shifts)`
 """
 take!(shifts) = popfirst!(shifts)
 
-#
-# Some iteration helpers
-#
-
-mutable struct BufferedIterator
-    shifts::Vector{ComplexF64}
-    generator
-
-    BufferedIterator(gen) = new(ComplexF64[], gen)
-end
-
-update!(it::BufferedIterator, args...) = update!(it.generator, args...)
-
-take_many!(it) = Tuple(take!(it))
-
-function take!(it::BufferedIterator)
-    if isempty(it.shifts)
-        it.shifts = take_many!(it.generator)
-        @debug "Obtained $(length(it.shifts)) new shifts"
-    end
-    pop!(it.shifts)
-end
-
 using ..Stuff
+include("shifts/helpers.jl")
 include("shifts/kuerschner.jl")
 include("shifts/penzl.jl")
 

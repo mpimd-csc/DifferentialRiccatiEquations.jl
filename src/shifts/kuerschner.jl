@@ -52,10 +52,6 @@ function take_many!(it::KuerschnerVIterator)
     # TODO: flip values at imaginary axes instead
     λ₋ = filter(l -> real(l) < 0, λ)
 
-    # Individual shifts will be extracted using pop!(),
-    # so reverse them to not change the current behavior.
-    reverse!(λ₋)
-
     return λ₋
 end
 

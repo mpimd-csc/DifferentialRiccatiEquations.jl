@@ -1,6 +1,5 @@
 # This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
 
-using Base.Iterators: Stateful, cycle
 using UnPack
 using ArnoldiMethod: partialschur
 using LinearMaps: InverseMap, LinearMap
@@ -32,6 +31,8 @@ function init(strategy::Penzl, prob)
     A⁻¹E = InverseMap(A; solver) * LinearMap(E)
     R₊ = compute_ritz_values(E⁻¹A, k₊)
     R₋ = compute_ritz_values(A⁻¹E, k₋)
+    # TODO: R₊ and R₋ may not be disjoint. Remove duplicates, or replace values that differ
+    # by an eps with their average.
     R = vcat(R₊, inv.(R₋))
 
     s(t, P) = prod(abs(t - p) / abs(t + p) for p in P)
@@ -51,7 +52,7 @@ function init(strategy::Penzl, prob)
         end
     end
 
-    return Stateful(cycle(P))
+    return P
 end
 
 function compute_ritz_values(A, n::Int)
