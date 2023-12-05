@@ -10,7 +10,7 @@ using LinearMaps: InverseMap, LinearMap
 Compute heuristic or sub-optimal shift parameters following Algorithm 5.1 of
 
 > Penzl: A cyclic low rank Smith method for large sparse Lyapunov equations,
-> SIAM J. Sci. Comput., 21 (2000), pp. 1401-1418. DOI: 10.1137/S1064827598347666
+> SIAM J. Sci. Comput., 21 (1999), pp. 1401-1418. DOI: 10.1137/S1064827598347666
 """
 struct Heuristic <: Strategy
     nshifts::Int

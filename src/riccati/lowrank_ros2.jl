@@ -6,6 +6,7 @@ function _solve(
     dt::Real,
     save_state::Bool,
     observer,
+    adi_kwargs::NamedTuple=NamedTuple(),
 ) where {TL,TD}
     @unpack E, A, B, C, tspan = prob
     q = size(C, 1)
@@ -49,7 +50,7 @@ function _solve(
         R1 = compress!(LDLᵀ{TL,TD}(G, S))
 
         lyap = GALEProblem(E, F, R1)
-        K1 = solve(lyap, ADI(); observer)
+        K1 = solve(lyap, ADI(); observer, adi_kwargs...)
 
         # Solve Lyapunov equation of 2nd stage
         T₁, D₁ = K1
@@ -59,7 +60,7 @@ function _solve(
         R2 = LDLᵀ{TL,TD}(G₂, S₂)
 
         lyap = GALEProblem(E, F, R2)
-        K2 = solve(lyap, ADI(); observer)
+        K2 = solve(lyap, ADI(); observer, adi_kwargs...)
 
         # Update X
         X = X + ((2-1/2γ)*τ)*K1 + (-τ/2)*K2

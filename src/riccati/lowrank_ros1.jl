@@ -6,6 +6,7 @@ function _solve(
     dt::Real,
     save_state::Bool,
     adi_initprev_from_step::Int=1,
+    adi_kwargs::NamedTuple=NamedTuple(),
     observer,
 ) where {TL,TD}
     T = LDLᵀ{TL,TD}
@@ -42,7 +43,7 @@ function _solve(
         # Update X
         lyap = GALEProblem(E, F, R)
         initial_guess = i > adi_initprev_from_step ? X : nothing
-        X = solve(lyap, ADI(); observer, initial_guess)
+        X = solve(lyap, ADI(); observer, initial_guess, adi_kwargs...)
         save_state && push!(Xs, X)
 
         # Update K

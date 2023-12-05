@@ -15,6 +15,12 @@ See section 5.3.1 of
 
 > Kürschner: Efficient low-rank solution of large-scale matrix equations.
 > Otto-von-Guericke-Universität Magdeburg (2016).
+
+The strategy has first been presented in
+
+> Benner, Kürschner, Saak: Self-generating and efficient shift parameters in ADI methods for large Lyapunov and Sylvester equations,
+> Electronic Transactions on Numerical Analysis, 43 (2014), pp. 142-162.
+> https://etna.math.kent.edu/volumes/2011-2020/vol43/abstract.php?vol=43&pages=142-162
 """
 struct Projection <: Strategy
     n_history::Int
