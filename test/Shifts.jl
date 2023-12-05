@@ -1,5 +1,6 @@
 # This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
 
+using LinearAlgebra
 using SparseArrays
 using Test
 
@@ -15,7 +16,7 @@ A = spzeros(n, n)
 A[1:2, 1:2] = penzl(1)
 A[3:n, 3:n] .= -1/2
 
-@testset "Heuristic Penzl" begin
+@testset "Heuristic Penzl Shifts" begin
     k = 2
     strategy = Heuristic(k, 2, 2)
     shifts = init(strategy, (; E, A))

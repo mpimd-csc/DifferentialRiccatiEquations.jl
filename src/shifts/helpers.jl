@@ -8,6 +8,13 @@ using Base.Iterators: Stateful, cycle
 
 Cycle through precomputed `values` or the shifts produced by the inner strategy.
 That is, continue with the first parameter once the last one has been consumed.
+
+Examples:
+
+```julia
+Cyclic(Heuristic(10, 20, 20))
+Cyclic(Float64[-1, -2, -3])
+```
 """
 struct Cyclic <: Strategy
     inner
@@ -16,9 +23,18 @@ end
 """
     Wrapped(func!, ::Shifts.Strategy)
 
-Apply `func!` to the set of shifts produced by the inner strategy.
-This may be used, e.g., to filter or reorder the shifts.
+Apply `func!` to the set of shifts produced by the inner strategy via [`Shifts.take_many!`](@ref).
+This strategy may be used, e.g., to filter or reorder the shifts.
 Complex-valued shifts must occur in conjugated pairs.
+
+Examples:
+
+```julia
+Wrapped(reverse, Projection(2))
+Wrapped(Projection(4)) do shifts
+    filter(s -> real(s) < -1, shifts)
+end
+```
 """
 struct Wrapped <: Strategy
     func!
@@ -46,7 +62,7 @@ end
     Shifts.take_many!(generator)
 
 Return a `Vector{<:Number}` of shift parameters to be used
-within a [`BufferedIterator`](@ref).
+within a [`Shifts.BufferedIterator`](@ref).
 """
 take_many!
 
