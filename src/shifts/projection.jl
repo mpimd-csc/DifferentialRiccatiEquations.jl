@@ -5,9 +5,9 @@ using UnPack
 using Compat: keepat!
 
 """
-    Shifts.KuerschnerV(u::Int)
+    Shifts.Projection(u::Int)
 
-Compute shift parameters based on the `u` most recent increments comprising the solution candidate to `prob`.
+Compute shift parameters based on the `u` most recent increments comprising the solution candidate.
 
 It is recommended to use even `u > 1`, such that an ADI double-step can properly be accounted for.
 
@@ -16,22 +16,22 @@ See section 5.3.1 of
 > Kürschner: Efficient low-rank solution of large-scale matrix equations.
 > Otto-von-Guericke-Universität Magdeburg (2016).
 """
-struct KuerschnerV <: Strategy
+struct Projection <: Strategy
     n_history::Int
 end
 
-mutable struct KuerschnerVIterator
+mutable struct ProjectionShiftIterator
     prob
     n_history::Int
     Vs::Vector{Any}
 end
 
-function init(strategy::KuerschnerV, prob)
-    it = KuerschnerVIterator(prob, strategy.n_history, [])
+function init(strategy::Projection, prob)
+    it = ProjectionShiftIterator(prob, strategy.n_history, [])
     BufferedIterator(it)
 end
 
-function update!(it::KuerschnerVIterator, _, R, Vs...)
+function update!(it::ProjectionShiftIterator, _, R, Vs...)
     isempty(Vs) && push!(it.Vs, R)
     append!(it.Vs, Vs)
     lst = length(it.Vs)
@@ -40,7 +40,7 @@ function update!(it::KuerschnerVIterator, _, R, Vs...)
     return
 end
 
-function take_many!(it::KuerschnerVIterator)
+function take_many!(it::ProjectionShiftIterator)
     @unpack E, A = it.prob
     @unpack Vs = it
 

@@ -16,7 +16,7 @@ Shifts.take!(::FortyTwo) = 42
 module Shifts
 
 export Cyclic, Wrapped
-export Penzl, KuerschnerV
+export Heuristic, Projection
 
 abstract type Strategy end
 
@@ -55,7 +55,7 @@ take!(shifts) = popfirst!(shifts)
 
 using ..Stuff
 include("shifts/helpers.jl")
-include("shifts/kuerschner.jl")
-include("shifts/penzl.jl")
+include("shifts/heuristic.jl")
+include("shifts/projection.jl")
 
 end

@@ -17,7 +17,7 @@ A[3:n, 3:n] .= -1/2
 
 @testset "Heuristic Penzl" begin
     k = 2
-    strategy = Penzl(k, 2, 2)
+    strategy = Heuristic(k, 2, 2)
     shifts = init(strategy, (; E, A))
 
     @test shifts isa Vector{ComplexF64}
@@ -47,7 +47,7 @@ end
     @test take!(shifts) == 3
     @test take!(shifts) == 1
 
-    shifts = init(Cyclic(Penzl(1, 1, 1)), (; E, A))
+    shifts = init(Cyclic(Heuristic(1, 1, 1)), (; E, A))
     p = take!(shifts)
     if isreal(p)
         @test take!(shifts) == p
@@ -75,8 +75,8 @@ Shifts.take_many!(d::DummyIterator) = d.values
     @test take!(shifts) === complex(1.0)
 end
 
-@testset "Adaptive Kuerschner" begin
-    strategy = KuerschnerV(1)
+@testset "Adaptive Projection Shifts" begin
+    strategy = Projection(1)
     shifts = init(strategy, (; E, A))
 
     # Ensure that no shifts have been computed so far:

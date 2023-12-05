@@ -82,7 +82,7 @@ end
 end
 
 using DifferentialRiccatiEquations: residual
-using DifferentialRiccatiEquations.Shifts: Cyclic, Penzl, KuerschnerV
+using DifferentialRiccatiEquations.Shifts
 
 @testset "NewtonADI()" begin
     G = LDLᵀ(B, I)
@@ -90,8 +90,8 @@ using DifferentialRiccatiEquations.Shifts: Cyclic, Penzl, KuerschnerV
     are = GAREProblem(E, A, G, Q)
     reltol = 1e-10
     @testset "$(adi_kwargs.shifts)" for adi_kwargs in [
-        (shifts = KuerschnerV(2),), # leads to some complex shifts
-        (shifts = Cyclic(Penzl(10, 20, 20)), maxiters = 200),
+        (shifts = Projection(2),), # leads to some complex shifts
+        (shifts = Cyclic(Heuristic(10, 20, 20)), maxiters = 200),
     ]
         X = solve(are, NewtonADI(); reltol, adi_kwargs)
         @test norm(residual(are, X)) < reltol * norm(Q)

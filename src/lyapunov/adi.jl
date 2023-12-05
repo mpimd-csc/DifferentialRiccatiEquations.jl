@@ -9,7 +9,7 @@ function CommonSolve.solve(
     maxiters=100,
     reltol=size(prob.A, 1) * eps(),
     observer=nothing,
-    shifts::Shifts.Strategy=Shifts.KuerschnerV(1),
+    shifts::Shifts.Strategy=Shifts.Projection(1),
 ) where {TL,TD}
     initial_guess = @something initial_guess zero(prob.C)
 
