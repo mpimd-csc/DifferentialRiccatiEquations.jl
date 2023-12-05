@@ -7,6 +7,7 @@ function CommonSolve.solve(
     maxiters = 5,
     observer = nothing,
     variant::Symbol = :zero,
+    adi_kwargs::NamedTuple = NamedTuple(),
 ) where {TG,TQ}
     TG <: LDLᵀ{<:AbstractMatrix,UniformScaling{Bool}} || error("TG=$TG not yet implemented")
     TQ <: LDLᵀ{<:AbstractMatrix,UniformScaling{Bool}} || error("TQ=$TQ not yet implemented")
@@ -67,7 +68,7 @@ function CommonSolve.solve(
 
         # Newton step:
         lyap = GALEProblem(E, F, RHS)
-        X = solve(lyap, ADI(); maxiters=100, reltol, observer, initial_guess)
+        X = solve(lyap, ADI(); maxiters=100, reltol, observer, initial_guess, adi_kwargs...)
     end
 
     observe_gare_done!(observer, i, X, res, res_norm)

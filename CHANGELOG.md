@@ -3,6 +3,8 @@
 * Fix LDLᵀ compression for indefinite objects (d6a649ad62ab6d413ce82e5a2b0090de813a33de)
 * Add callbacks to allow user to gather information during `solve` calls;
   see docstring of the `Callbacks` module for more info
+* Add configurable shift strategies;
+  see docstring of the `Shifts` module for more info
 
 # v0.3
 

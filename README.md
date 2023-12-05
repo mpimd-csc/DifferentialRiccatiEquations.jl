@@ -141,6 +141,33 @@ help?> Callbacks
 
 Note that there are currently no pre-built observers.
 
+## ADI shift parameter selection
+
+The ADI shifts may be configured using keyword arguments of `solve`.
+
+```julia
+shifts = Shifts.Projection(2)
+solve(::GALEProblem, ::ADI; shifts)
+
+adi_kwargs = (; shifts)
+solve(::GDREProblem, ::Ros1; adi_kwargs)
+solve(::GAREProblem, ::NewtonADI; adi_kwargs)
+```
+
+Pre-built shift strategies include:
+
+* `Heuristic` shifts described by [Penzl1999]
+* `Projection` shifts described by [BennerKuerschnerSaak2014]
+* User-supplied shifts via the `Cyclic` wrapper
+
+Refer to the documentation of the `Shifts` module for further information.
+
+```
+julia> import DifferentialRiccatiEquations.Shifts
+
+help?> Shifts
+```
+
 # License
 
 The DifferentialRiccatiEquations package is licensed under [MIT], see `LICENSE`.
@@ -151,7 +178,9 @@ See [MOR Wiki] for further information.
 > **Warning**
 > The output matrix `C` of the included configuration differs from all the other configurations hosted at [MOR Wiki] by a factor of 10.
 
+[Penzl1999]: https://doi.org/10.1137/S1064827598347666
 [BennerSaak2005]: http://nbn-resolving.de/urn:nbn:de:swb:ch1-200601597
+[BennerKuerschnerSaak2014]: https://www.emis.de/journals/ETNA/vol.43.2014-2015/pp142-162.dir/pp142-162.pdf
 [CC-BY-4.0]: https://spdx.org/licenses/CC-BY-4.0.html
 [MIT]: https://spdx.org/licenses/MIT.html
 [MOR Wiki]: http://modelreduction.org/index.php/Steel_Profile

@@ -3,7 +3,7 @@
 using Test
 using DifferentialRiccatiEquations
 using SparseArrays
-using DifferentialRiccatiEquations: orth
+using DifferentialRiccatiEquations.Stuff: orth
 
 @testset "DifferentialRiccatiEquations.jl" begin
     @testset "LDLᵀ" begin include("LDLt.jl") end
@@ -16,5 +16,6 @@ using DifferentialRiccatiEquations: orth
         Qs = orth(Ns)
         @test size(Qs) == (4, 0)
     end
+    @testset "ADI Shifts" begin include("Shifts.jl") end
     @testset "Oberwolfach Rail" begin include("rail.jl") end
 end

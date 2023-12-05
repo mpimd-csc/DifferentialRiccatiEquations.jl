@@ -35,8 +35,10 @@ For sparse `A`, return a [`LowRankUpdate`](@ref).
 """
 lr_update
 
-lr_update(A::Matrix, α, U, V) = A + (inv(α)*U)*V
+lr_update(A::Matrix{T}, α, U, V) where {T} = A + (inv(α)*U)*V
 lr_update(A::AbstractSparseMatrixCSC, α, U, V) = LowRankUpdate(A, α, U, V)
+
+Base.eltype(::Type{LowRankUpdate{TA,T,TU,TV}}) where {TA,T,TU,TV} = Base.promote_eltype(TA, T, TU, TV)
 
 Base.iterate(AUV::LowRankUpdate) = AUV.A, Val(:a)
 Base.iterate(AUV::LowRankUpdate, ::Val{:a}) = AUV.α, Val(:U)
@@ -89,7 +91,7 @@ function Base.:(+)(AUV::LowRankUpdate, E::AbstractMatrix)
     LowRankUpdate(A+E, α, U, V)
 end
 
-function Base.:(*)(AUV::LowRankUpdate, X::AbstractMatrix)
+function Base.:(*)(AUV::LowRankUpdate, X::AbstractVecOrMat)
     size(X, 1) == size(X, 2) && @warn(
         "Multiplying LowRankUpdate by square matrix; memory usage may increase severely",
         dim = size(X, 1),

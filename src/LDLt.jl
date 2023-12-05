@@ -29,6 +29,8 @@ struct LDLᵀ{TL,TD}
     LDLᵀ{TL,TD}(L::Vector{TL}, D::Vector{TD}) where {TL, TD} = new{TL,TD}(L, D)
 end
 
+Base.eltype(::Type{LDLᵀ{TL,TD}}) where {TL,TD} = promote_type(eltype(TL), eltype(TD))
+
 # Mainly for testing
 function Base.Matrix(X::LDLᵀ)
     @unpack Ls, Ds = X
@@ -58,7 +60,7 @@ Base.size(X::LDLᵀ) = (n = size(X, 1); (n, n))
 Compute the Frobenius norm of a LDLᵀ factorization.
 The technique is similar to the one described in
 
-> Benner, Li, Penzel. Numerical solution of large-scale Lyapunov equations,
+> Benner, Li, Penzl. Numerical solution of large-scale Lyapunov equations,
 > Riccati equations, and linear-quadratic optimal control problems.
 > Numerical Linear Algebra with Applications 2008. DOI: 10.1002/nla.622
 """

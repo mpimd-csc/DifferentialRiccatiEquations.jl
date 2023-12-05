@@ -82,12 +82,18 @@ end
 end
 
 using DifferentialRiccatiEquations: residual
+using DifferentialRiccatiEquations.Shifts
 
 @testset "NewtonADI()" begin
     G = LDLᵀ(B, I)
     Q = LDLᵀ(C', I)
     are = GAREProblem(E, A, G, Q)
     reltol = 1e-10
-    X = solve(are, NewtonADI(); reltol)
-    @test norm(residual(are, X)) < reltol * norm(Q)
+    @testset "$(adi_kwargs.shifts)" for adi_kwargs in [
+        (shifts = Projection(2),), # leads to some complex shifts
+        (shifts = Cyclic(Heuristic(10, 20, 20)), maxiters = 200),
+    ]
+        X = solve(are, NewtonADI(); reltol, adi_kwargs)
+        @test norm(residual(are, X)) < reltol * norm(Q)
+    end
 end

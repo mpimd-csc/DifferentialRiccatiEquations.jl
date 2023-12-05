@@ -9,6 +9,7 @@ function CommonSolve.solve(
     maxiters=100,
     reltol=size(prob.A, 1) * eps(),
     observer=nothing,
+    shifts::Shifts.Strategy=Shifts.Projection(1),
 ) where {TL,TD}
     initial_guess = @something initial_guess zero(prob.C)
 
@@ -16,13 +17,14 @@ function CommonSolve.solve(
     G, _ = C
     abstol = reltol * norm(C) # use same tolerance as if initial_guess=zero(C)
 
-    # Compute initial shift parameters
-    μ::Vector{ComplexF64} = qshifts(E, A, G)
-
     # Compute initial residual
     X::LDLᵀ{TL,TD} = initial_guess::LDLᵀ{TL,TD}
     R::TL, T::TD = initial_residual = residual(prob, X)::LDLᵀ{TL,TD}
     initial_residual_norm = norm(initial_residual)
+
+    # Initialize shifts
+    shifts = Shifts.init(shifts, prob)
+    Shifts.update!(shifts, X, R)
 
     # Perform actual ADI
     i = 1
@@ -30,47 +32,42 @@ function CommonSolve.solve(
     local ρR # norm of residual
 
     observe_gale_start!(observer, prob, ADI(), abstol, reltol)
-    observe_gale_metadata!(observer, "ADI shifts", μ)
     observe_gale_step!(observer, 0, X, initial_residual, initial_residual_norm)
     while true
-        # If we exceeded the shift parameters, compute new ones:
-        if i > length(μ)
-            @debug "Computing new shifts" i
-            μ′ = if isreal(μ[i-1])
-                qshifts(E, A, V)
-            else
-                qshifts(E, A, [V₁ V₂])
-            end
-            @debug "Obtained $(length(μ′)) new shifts" i
-            observe_gale_metadata!(observer, "ADI shifts", μ′)
-            append!(μ, μ′)
-        end
+        μ = Shifts.take!(shifts)
+        observe_gale_metadata!(observer, "ADI shifts", μ)
 
         # Continue with ADI:
-        Y = (-2real(μ[i]) * T)::TD
-        if isreal(μ[i])
-            μᵢ = real(μ[i])
+        Y = (-2real(μ) * T)::TD
+        if isreal(μ)
+            μᵢ = real(μ)
             F = A' + μᵢ*E
             V = (F \ R)::TL
 
             X += (V, Y)
             R -= (2μᵢ * (E'*V))::TL
             i += 1
+
+            Shifts.update!(shifts, X, R, V)
         else
-            @assert μ[i+1] ≈ conj(μ[i])
-            μᵢ = μ[i]
+            μ_next = Shifts.take!(shifts)
+            @assert μ_next ≈ conj(μ)
+            observe_gale_metadata!(observer, "ADI shifts", μ_next)
+            μᵢ = μ
             F = A' + μᵢ*E
             V = F \ R
 
-            δ = real(μ[i]) / imag(μ[i])
+            δ = real(μᵢ) / imag(μᵢ)
             Vᵣ = real(V)
             Vᵢ = imag(V)
             V′ = Vᵣ + δ*Vᵢ
             V₁ = √2 * V′
             V₂ = sqrt(2δ^2 + 2) * Vᵢ
             X = X + (V₁, Y) + (V₂, Y)
-            R -= (4real(μ[i]) * (E'*V′))::TL
+            R -= (4real(μ) * (E'*V′))::TL
             i += 2
+
+            Shifts.update!(shifts, X, R, V₁, V₂)
         end
 
         residual = LDLᵀ(R, T)
@@ -118,42 +115,4 @@ function residual(
 
     R̃ = LDLᵀ(R, T)::LDLᵀ{TL,TD}
     compress!(R̃) # unconditionally
-end
-
-function qshifts(E, A, N::AbstractMatrix{<:Real})
-    Q = orth(N)
-    Ẽ = restrict(E, Q)
-    Ã = restrict(A, Q)
-    λ = eigvals(Ã, Ẽ)
-    # TODO: flip values at imaginary axes instead
-    λ₋ = filter(l -> real(l) < 0, λ)
-    return λ₋
-end
-
-orth(N::SparseMatrixCSC) = orth(Matrix(N))
-
-function orth(N::Matrix{T}) where {T}
-    if VERSION < v"1.7"
-        QR = qr(N, Val(true)) # pivoted
-    else
-        QR = qr(N, ColumnNorm())
-    end
-    R = QR.R
-    # TODO: Find reference! As of LAPACK 3.1.2 or so,
-    # the diagonal of R is sorted with decreasing absolute value,
-    # and R is diagonal dominant. Therefore, it may be used to discover the rank.
-    # Note that column permutations don't matter for span(N) == span(Q).
-    ε = size(N, 1) * eps()
-    r = 0
-    for outer r in 1:size(R, 1)
-        abs(R[r,r]) > ε && continue
-        r -= 1
-        break
-    end
-    Q = zeros(T, size(N, 1), r)
-    for i in 1:r
-        Q[i,i] = 1
-    end
-    lmul!(QR.Q, Q)
-    return Q
 end
