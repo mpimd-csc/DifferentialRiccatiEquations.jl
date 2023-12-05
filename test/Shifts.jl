@@ -47,6 +47,18 @@ end
     @test take!(shifts) == 3
     @test take!(shifts) == 1
 
+    @testset "Type Stability ($(eltype(values)))" for values in (
+        1:2, # iterable
+        (1.0, 2.0), # Tuple
+        ComplexF64[1, 2], # Vector
+    )
+        shifts = init(Cyclic(values), nothing)
+        a, b = values
+        # Check value and type:
+        @test take!(shifts) === a
+        @test take!(shifts) === b
+    end
+
     shifts = init(Cyclic(Heuristic(1, 1, 1)), (; E, A))
     p = take!(shifts)
     if isreal(p)
@@ -65,14 +77,27 @@ Shifts.take_many!(d::DummyIterator) = d.values
 # Prerequisite:
 @test init(Dummy(nothing), nothing) isa Shifts.BufferedIterator
 
+@testset "BufferedIterator helper" begin
+    @testset "Type Stability $(eltype(values))" for values in (
+        [1, 2, 3],
+        ComplexF64[1, 2, 3],
+    )
+        shifts = init(Dummy(copy(values)), nothing)
+        # Check value and type stability:
+        for v in values
+            @test take!(shifts) === v
+        end
+    end
+end
+
 @testset "Wrapped helper" begin
     shifts = init(Wrapped(reverse, Dummy([1,2,3])), nothing)
     @test shifts isa Shifts.BufferedIterator
     @test shifts.generator isa Shifts.WrappedIterator
     @test shifts.generator.generator isa DummyIterator
-    @test take!(shifts) === complex(3.0)
-    @test take!(shifts) === complex(2.0)
-    @test take!(shifts) === complex(1.0)
+    @test take!(shifts) == 3
+    @test take!(shifts) == 2
+    @test take!(shifts) == 1
 end
 
 @testset "Adaptive Projection Shifts" begin

@@ -30,17 +30,25 @@ end
 """
     BufferedIterator(generator)
 
-Initialize an internal buffer of type `Vector{ComplexF64}` from
+Initialize an internal buffer of type `Vector{<:Number}` from
 [`Shifts.take_many!(generator)`](@ref Shifts.take_many!)
 and return shifts one-by-one using `popfirst!`.
 Refill the buffer once it is depleated.
 """
 mutable struct BufferedIterator
-    buffer::Vector{ComplexF64}
+    buffer::Vector{<:Number}
     generator
 
     BufferedIterator(gen) = new(ComplexF64[], gen)
 end
+
+"""
+    Shifts.take_many!(generator)
+
+Return a `Vector{<:Number}` of shift parameters to be used
+within a [`BufferedIterator`](@ref).
+"""
+take_many!
 
 mutable struct WrappedIterator
     func!
