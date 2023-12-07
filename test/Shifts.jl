@@ -104,7 +104,9 @@ end
 end
 
 @testset "Adaptive Projection Shifts" begin
-    strategy = Projection(1)
+    @test_throws ArgumentError Projection(1)
+
+    strategy = Projection(2)
     shifts = init(strategy, (; E, A))
 
     # Ensure that no shifts have been computed so far:
@@ -155,7 +157,7 @@ end
             A = zeros(4, 4)
             A[1:2, 1:2] .= modified_penzl(f(1))
             A[3:4, 3:4] .= modified_penzl(f(2))
-            shifts = init(Shifts.Projection(1), (; E=I4, A))
+            shifts = init(Shifts.Projection(2), (; E=I4, A))
 
             # Hack input such that full spectrum of A is returned.
             Shifts.update!(shifts, nothing, nothing, I4)

@@ -9,7 +9,7 @@ using Compat: keepat!
 
 Compute shift parameters based on the `u` most recent increments comprising the solution candidate.
 
-It is recommended to use even `u > 1`, such that an ADI double-step can properly be accounted for.
+Only even `u > 1` are allowed, such that an ADI double-step can properly be accounted for.
 
 See section 5.3.1 of
 
@@ -24,6 +24,11 @@ The strategy has first been presented in
 """
 struct Projection <: Strategy
     n_history::Int
+
+    function Projection(u)
+        isodd(u) && throw(ArgumentError("History must be even; got $u"))
+        new(u)
+    end
 end
 
 mutable struct ProjectionShiftIterator
