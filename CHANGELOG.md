@@ -5,6 +5,8 @@
   see docstring of the `Callbacks` module for more info
 * Add configurable shift strategies;
   see docstring of the `Shifts` module for more info
+* Fix order of automatic/projection shifts: ensure that complex shifts occur in
+  conjugated pairs directly one after the other (e36a1163f9db4796b334fbdf23c23ea4fd0aab9d)
 
 # v0.3
 

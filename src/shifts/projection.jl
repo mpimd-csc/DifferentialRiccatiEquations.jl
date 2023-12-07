@@ -58,6 +58,8 @@ function take_many!(it::ProjectionShiftIterator)
     # TODO: flip values at imaginary axes instead
     λ₋ = filter(l -> real(l) < 0, λ)
 
+    safe_sort!(λ₋)
+
     return λ₋
 end
 
