@@ -6,7 +6,7 @@ function CommonSolve.solve(
     reltol = size(prob.A, 1) * eps(),
     maxiters = 5,
     observer = nothing,
-    variant::Symbol = :zero,
+    adi_initprev::Bool = false,
     adi_kwargs::NamedTuple = NamedTuple(),
 ) where {TG,TQ}
     TG <: LDLᵀ{<:AbstractMatrix,UniformScaling{Bool}} || error("TG=$TG not yet implemented")
@@ -58,13 +58,7 @@ function CommonSolve.solve(
         compress!(RHS)
 
         # ADI setup
-        if variant == :zero
-            initial_guess = nothing
-        elseif variant == :prev
-            initial_guess = X
-        else
-            error("unkown variant $variant")
-        end
+        initial_guess = adi_initprev ? X : nothing
 
         # Newton step:
         lyap = GALEProblem(E, F, RHS)
