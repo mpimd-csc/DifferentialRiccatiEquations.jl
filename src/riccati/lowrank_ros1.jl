@@ -5,7 +5,7 @@ function _solve(
     ::Ros1;
     dt::Real,
     save_state::Bool,
-    adi_initprev_from_step::Int=1,
+    adi_initprev::Bool=true,
     adi_kwargs::NamedTuple=NamedTuple(),
     observer,
 ) where {TL,TD}
@@ -42,7 +42,7 @@ function _solve(
 
         # Update X
         lyap = GALEProblem(E, F, R)
-        initial_guess = i > adi_initprev_from_step ? X : nothing
+        initial_guess = adi_initprev ? X : nothing
         X = solve(lyap, ADI(); observer, initial_guess, adi_kwargs...)
         save_state && push!(Xs, X)
 
