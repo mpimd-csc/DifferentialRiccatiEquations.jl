@@ -94,3 +94,12 @@ function take!(it::BufferedIterator)
     # TODO: Using `popfirst!` feels inefficient, even though there should be only 10s of elements buffered.
     popfirst!(it.buffer)
 end
+
+###
+
+"""
+    safe_sort!(shifts)
+
+Ensure that complex conjugated values are located adjacent to one another.
+"""
+safe_sort!(shifts) = sort!(shifts; by = v -> (real(v), abs(imag(v))))

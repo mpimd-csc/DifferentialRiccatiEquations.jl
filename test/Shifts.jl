@@ -4,11 +4,13 @@ using LinearAlgebra
 using SparseArrays
 using Test
 
+using DifferentialRiccatiEquations
 using DifferentialRiccatiEquations: Shifts
 using .Shifts
 using .Shifts: take!, init
 
 penzl(p) = [-1 p; -p -1]
+modified_penzl(v) = abs(real(v)) * penzl(imag(v) / real(v))
 
 n = 3
 E = sparse(1.0I(n))
@@ -117,4 +119,47 @@ end
     # only one shift should have been computed:
     @test Shifts.take!(shifts) ≈ -5/6
     @test isempty(shifts.buffer)
+end
+
+function preserves_conj_pairs(shifts, n=length(shifts); verbose=true)
+    i = 0
+    while i < n
+        i += 1
+        v = take!(shifts)
+        if !isreal(v)
+            i += 1
+            w = take!(shifts)
+            w ≈ conj(v) && continue
+            verbose && @error "Error at shift $i: expected conj($v), got $w"
+            return false
+        end
+    end
+    return true
+end
+
+# Ensure that complex shifts occur in conjugated pairs.
+@testset "Conjugated Pairs" begin
+    @testset "Same $desc" for (desc, f) in [
+        ("magnitude", a -> -exp(a*im)),
+        ("real part", a -> -1 - a*im),
+    ]
+        @testset "Helper $(length(vals))" for vals in (-1:1, -3:2:3)
+            vals = [f(v) for v in -n:2:n]
+            @test !preserves_conj_pairs(copy(vals); verbose=false)
+            Shifts.safe_sort!(vals)
+            @test preserves_conj_pairs(copy(vals))
+        end
+
+        @testset "Hacky Projection shifts" begin
+            I4 = 1.0 * I(4)
+            A = zeros(4, 4)
+            A[1:2, 1:2] .= modified_penzl(f(1))
+            A[3:4, 3:4] .= modified_penzl(f(2))
+            shifts = init(Shifts.Projection(1), (; E=I4, A))
+
+            # Hack input such that full spectrum of A is returned.
+            Shifts.update!(shifts, nothing, nothing, I4)
+            @test preserves_conj_pairs(shifts, 4)
+        end
+    end
 end
