@@ -35,6 +35,10 @@ function init(strategy::Heuristic, prob)
     # by an eps with their average.
     R = vcat(R₊, inv.(R₋))
 
+    heuristic(R, nshifts)
+end
+
+function heuristic(R, nshifts=length(R))
     s(t, P) = prod(abs(t - p) / abs(t + p) for p in P)
 
     p = argmin(R) do p
