@@ -41,7 +41,7 @@ function CommonSolve.solve(
         observe_gare_step!(observer, i, X, res, res_norm)
 
         res_norm <= abstol && break
-        if i > maxiters
+        if i >= maxiters
             observe_gare_failed!(observer)
             @warn "NewtonADI did not converge" residual=res_norm abstol maxiters
             break
