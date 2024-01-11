@@ -14,6 +14,7 @@ using SparseArrays: SparseArrays,
                     issparse,
                     spzeros,
                     spdiagm
+using TimerOutputs: @timeit_debug
 
 include("Stuff.jl")
 

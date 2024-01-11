@@ -23,39 +23,43 @@ function CommonSolve.solve(
     initial_residual_norm = norm(initial_residual)
 
     # Initialize shifts
-    shifts = Shifts.init(shifts, prob)
-    Shifts.update!(shifts, X, R)
+    @timeit_debug "shifts" begin
+        shifts = Shifts.init(shifts, prob)
+        Shifts.update!(shifts, X, R)
+    end
 
     # Perform actual ADI
     i = 1
     local V, V₁, V₂ # ADI increments
     local ρR # norm of residual
 
-    observe_gale_start!(observer, prob, ADI(), abstol, reltol)
-    observe_gale_step!(observer, 0, X, initial_residual, initial_residual_norm)
+    @timeit_debug "callbacks" begin
+        observe_gale_start!(observer, prob, ADI(), abstol, reltol)
+        observe_gale_step!(observer, 0, X, initial_residual, initial_residual_norm)
+    end
     while true
-        μ = Shifts.take!(shifts)
-        observe_gale_metadata!(observer, "ADI shifts", μ)
+        μ = @timeit_debug "shifts" Shifts.take!(shifts)
+        @timeit_debug "callbacks" observe_gale_metadata!(observer, "ADI shifts", μ)
 
         # Continue with ADI:
         Y = (-2real(μ) * T)::TD
         if isreal(μ)
             μᵢ = real(μ)
             F = A' + μᵢ*E
-            V = (F \ R)::TL
+            @timeit_debug "solve (real)" V = (F \ R)::TL
 
             X += (V, Y)
             R -= (2μᵢ * (E'*V))::TL
             i += 1
 
-            Shifts.update!(shifts, X, R, V)
+            @timeit_debug "shifts" Shifts.update!(shifts, X, R, V)
         else
-            μ_next = Shifts.take!(shifts)
+            μ_next = @timeit_debug "shifts" Shifts.take!(shifts)
             @assert μ_next ≈ conj(μ)
-            observe_gale_metadata!(observer, "ADI shifts", μ_next)
+            @timeit_debug "callbacks" observe_gale_metadata!(observer, "ADI shifts", μ_next)
             μᵢ = μ
             F = A' + μᵢ*E
-            V = F \ R
+            @timeit_debug "solve (complex)" V = F \ R
 
             δ = real(μᵢ) / imag(μᵢ)
             Vᵣ = real(V)
@@ -67,16 +71,16 @@ function CommonSolve.solve(
             R -= (4real(μ) * (E'*V′))::TL
             i += 2
 
-            Shifts.update!(shifts, X, R, V₁, V₂)
+            @timeit_debug "shifts" Shifts.update!(shifts, X, R, V₁, V₂)
         end
 
         residual = LDLᵀ(R, T)
         ρR = norm(residual)
-        observe_gale_step!(observer, i-1, X, residual, ρR)
+        @timeit_debug "callbacks" observe_gale_step!(observer, i-1, X, residual, ρR)
         @debug "ADI" i rank(X) residual=ρR
         ρR <= abstol && break
         if i > maxiters
-            observe_gale_failed!(observer)
+            @timeit_debug "callbacks" observe_gale_failed!(observer)
             @warn "ADI did not converge" residual=ρR abstol maxiters
             break
         end
@@ -86,12 +90,12 @@ function CommonSolve.solve(
 
     iters = i - 1 # actual number of ADI steps performed
     @debug "ADI done" i=iters maxiters residual=ρR abstol rank(X) rank_initial_guess=rank(initial_guess) rank_rhs=rank(C) rank_residual=size(R)
-    observe_gale_done!(observer, iters, X, LDLᵀ(R, T), ρR)
+    @timeit_debug "callbacks" observe_gale_done!(observer, iters, X, LDLᵀ(R, T), ρR)
 
     return X
 end
 
-function residual(
+@timeit_debug function residual(
     prob::GALEProblem{LDLᵀ{TL,TD}},
     val::LDLᵀ{TL,TD},
 ) where {TL,TD}
