@@ -8,6 +8,8 @@ function _solve(
     observer,
     adi_kwargs::NamedTuple=NamedTuple(),
 ) where {TL,TD}
+    observe_gdre_start!(observer, prob, Ros2())
+
     @unpack E, A, B, C, tspan = prob
     q = size(C, 1)
     X = prob.X0
@@ -26,7 +28,6 @@ function _solve(
     Ks = [K]
     sizehint!(Ks, len)
 
-    observe_gdre_start!(observer, prob, Ros2())
     observe_gdre_step!(observer, tstops[1], X, K)
 
     for i in 2:len

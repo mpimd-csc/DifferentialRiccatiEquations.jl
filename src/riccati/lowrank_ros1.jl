@@ -9,6 +9,8 @@ function _solve(
     adi_kwargs::NamedTuple=NamedTuple(),
     observer,
 ) where {TL,TD}
+    @timeit_debug "callbacks" observe_gdre_start!(observer, prob, Ros1())
+
     T = LDLᵀ{TL,TD}
 
     @unpack E, A, B, C, tspan = prob
@@ -26,10 +28,7 @@ function _solve(
     Ks = [K]
     sizehint!(Ks, len)
 
-    @timeit_debug "callbacks" begin
-        observe_gdre_start!(observer, prob, Ros1())
-        observe_gdre_step!(observer, tstops[1], X, K)
-    end
+    @timeit_debug "callbacks" observe_gdre_step!(observer, tstops[1], X, K)
 
     for i in 2:len
         τ = tstops[i-1] - tstops[i]

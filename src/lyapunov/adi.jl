@@ -11,6 +11,7 @@ function CommonSolve.solve(
     observer=nothing,
     shifts::Shifts.Strategy=Shifts.Projection(2),
 ) where {TL,TD}
+    @timeit_debug "callbacks" observe_gale_start!(observer, prob, ADI())
     initial_guess = @something initial_guess zero(prob.C)
 
     @unpack E, A, C = prob
@@ -33,10 +34,7 @@ function CommonSolve.solve(
     local V, V₁, V₂ # ADI increments
     local ρR # norm of residual
 
-    @timeit_debug "callbacks" begin
-        observe_gale_start!(observer, prob, ADI(), abstol, reltol)
-        observe_gale_step!(observer, 0, X, initial_residual, initial_residual_norm)
-    end
+    @timeit_debug "callbacks" observe_gale_step!(observer, 0, X, initial_residual, initial_residual_norm)
     while true
         μ = @timeit_debug "shifts" Shifts.take!(shifts)
         @timeit_debug "callbacks" observe_gale_metadata!(observer, "ADI shifts", μ)

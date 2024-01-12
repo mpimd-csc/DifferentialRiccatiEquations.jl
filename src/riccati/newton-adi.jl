@@ -11,6 +11,8 @@ function CommonSolve.solve(
 ) where {TG,TQ}
     TG <: LDLᵀ{<:AbstractMatrix,UniformScaling{Bool}} || error("TG=$TG not yet implemented")
     TQ <: LDLᵀ{<:AbstractMatrix,UniformScaling{Bool}} || error("TQ=$TQ not yet implemented")
+
+    observe_gare_start!(observer, prob, NewtonADI())
     TL = TD = Matrix{Float64}
 
     @unpack E, A, Q = prob
@@ -25,7 +27,6 @@ function CommonSolve.solve(
     abstol = reltol * res_norm
 
     i = 0
-    observe_gare_start!(observer, prob, NewtonADI(), abstol, reltol)
     while true
         # Compute residual
         L, D = X
