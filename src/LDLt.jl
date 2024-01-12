@@ -189,7 +189,7 @@ See also: [`concatenate!`](@ref)
     concatenate!(X)
     L = only(X.Ls)
     D = only(X.Ds)
-    if VERSION < v"1.7"
+    @timeit_debug "QR" if VERSION < v"1.7"
         Q, R, p = qr(L, Val(true)) # pivoting
     else
         Q, R, p = qr(L, ColumnNorm())
@@ -198,7 +198,7 @@ See also: [`concatenate!`](@ref)
     ip = invperm(p)
     RΠᵀ = R[:,ip]
     S = Symmetric(RΠᵀ*D*(RΠᵀ)')
-    λ, V = eigen(S; sortby = x -> -abs(x))
+    λ, V = @timeit_debug "Eigen" eigen(S; sortby = x -> -abs(x))
 
     # only use "large" eigenvalues,
     # cf. [Kürschner2016, p. 94]
