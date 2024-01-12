@@ -64,7 +64,7 @@ The technique is similar to the one described in
 > Riccati equations, and linear-quadratic optimal control problems.
 > Numerical Linear Algebra with Applications 2008. DOI: 10.1002/nla.622
 """
-@timeit_debug function LinearAlgebra.norm(X::LDLᵀ)
+@timeit_debug "norm(::LDLᵀ)" function LinearAlgebra.norm(X::LDLᵀ)
     # Decompose while not triggering compression.
     concatenate!(X)
     L = only(X.Ls)
@@ -161,7 +161,7 @@ This is a somewhat cheap operation.
 
 See also: [`compress!`](@ref)
 """
-@timeit_debug function concatenate!(X::LDLᵀ{TL,TD}) where {TL,TD}
+@timeit_debug "concatenate!(::LDLᵀ)" function concatenate!(X::LDLᵀ{TL,TD}) where {TL,TD}
     @unpack Ls, Ds = X
     @assert length(Ls) == length(Ds)
     length(Ls) == 1 && return X
@@ -185,7 +185,7 @@ See also: [`concatenate!`](@ref)
 
 [^Lang2015]: N Lang, H Mena, and J Saak, "On the benefits of the LDLT factorization for large-scale differential matrix equation solvers" Linear Algebra and its Applications 480 (2015): 44-71. [doi:10.1016/j.laa.2015.04.006](https://doi.org/10.1016/j.laa.2015.04.006)
 """
-@timeit_debug function compress!(X::LDLᵀ{TL,TD}) where {TL,TD}
+@timeit_debug "compress!(::LDLᵀ)" function compress!(X::LDLᵀ{TL,TD}) where {TL,TD}
     concatenate!(X)
     L = only(X.Ls)
     D = only(X.Ds)

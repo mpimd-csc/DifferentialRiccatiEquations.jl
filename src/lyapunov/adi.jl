@@ -95,7 +95,7 @@ function CommonSolve.solve(
     return X
 end
 
-@timeit_debug function residual(
+@timeit_debug "residual(::GALEProblem, ::LDLᵀ)" function residual(
     prob::GALEProblem{LDLᵀ{TL,TD}},
     val::LDLᵀ{TL,TD},
 ) where {TL,TD}
