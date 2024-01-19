@@ -8,6 +8,7 @@ function CommonSolve.solve(
     initial_guess::Union{Nothing,LDLᵀ{TL,TD}}=nothing,
     maxiters=100,
     reltol=size(prob.A, 1) * eps(),
+    abstol=reltol * norm(prob.C), # use same tolerance as if initial_guess=zero(C)
     observer=nothing,
     shifts::Shifts.Strategy=Shifts.Projection(2),
 ) where {TL,TD}
@@ -15,8 +16,6 @@ function CommonSolve.solve(
     initial_guess = @something initial_guess zero(prob.C)
 
     @unpack E, A, C = prob
-    G, _ = C
-    abstol = reltol * norm(C) # use same tolerance as if initial_guess=zero(C)
 
     # Compute initial residual
     X::LDLᵀ{TL,TD} = initial_guess::LDLᵀ{TL,TD}

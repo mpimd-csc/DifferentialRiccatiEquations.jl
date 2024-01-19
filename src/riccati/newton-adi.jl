@@ -1,5 +1,6 @@
 # This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
 
+# Keep defaults in sync with docstring of NewtonADI!
 function CommonSolve.solve(
     prob::GAREProblem{TG,TQ},
     ::NewtonADI;
@@ -8,6 +9,9 @@ function CommonSolve.solve(
     observer = nothing,
     adi_initprev::Bool = false,
     adi_kwargs::NamedTuple = NamedTuple(),
+    inexact::Bool = true,
+    inexact_hybrid::Bool = true,
+    inexact_forcing = quadratic_forcing,
 ) where {TG,TQ}
     TG <: LDLᵀ{<:AbstractMatrix,UniformScaling{Bool}} || error("TG=$TG not yet implemented")
     TQ <: LDLᵀ{<:AbstractMatrix,UniformScaling{Bool}} || error("TQ=$TQ not yet implemented")
@@ -59,13 +63,52 @@ function CommonSolve.solve(
         compress!(RHS)
 
         # ADI setup
+        lyap = GALEProblem(E, F, RHS)
         initial_guess = adi_initprev ? X : nothing
+        adi_reltol = get(adi_kwargs, :reltol, reltol / 10)
+        if inexact
+            η = inexact_forcing(i, res_norm)
+            adi_abstol = η * res_norm
+            if inexact_hybrid
+                # If the classical/"exact" tolerance is less strict than
+                # the one of the Inexact Newton, use that tolerance instead.
+                classical_abstol = adi_reltol * norm(lyap.C)
+                if classical_abstol > adi_abstol
+                    @debug "Switching from inexact to classical Newton method" i inexact_abstol=adi_abstol classical_abstol
+                    adi_abstol = classical_abstol
+                end
+            end
+        else
+            adi_abstol = adi_reltol * norm(lyap.C)
+        end
 
         # Newton step:
-        lyap = GALEProblem(E, F, RHS)
-        X = solve(lyap, ADI(); maxiters=100, reltol, observer, initial_guess, adi_kwargs...)
+        X = solve(lyap, ADI();
+            maxiters=100,
+            observer,
+            initial_guess,
+            abstol=adi_abstol,
+            adi_kwargs...)
     end
 
     observe_gare_done!(observer, i, X, res, res_norm)
     X
 end
+
+"""
+    superlinear_forcing(i, _) = 1 / (i^3 + 1)
+
+Exemplary forcing term to obtain superlinear convergence in the inexact Newton method.
+`i::Int` refers to the current Newton step.
+See [`NewtonADI`](@ref).
+"""
+superlinear_forcing(i, _) = 1 / (i^3 + 1)
+
+"""
+    quadratic_forcing(_, residual_norm) = min(0.1, 0.9 * residual_norm)
+
+Exemplary forcing term to obtain quadratic convergence in the inexact Newton method.
+`residual_norm::Float64` refers to the norm of the previous Newton residual.
+See [`NewtonADI`](@ref).
+"""
+quadratic_forcing(_, residual_norm) = min(0.1, 0.9 * residual_norm)
