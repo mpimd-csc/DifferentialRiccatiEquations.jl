@@ -16,7 +16,7 @@ function CommonSolve.solve(
     TG <: LDLᵀ{<:AbstractMatrix,UniformScaling{Bool}} || error("TG=$TG not yet implemented")
     TQ <: LDLᵀ{<:AbstractMatrix,UniformScaling{Bool}} || error("TQ=$TQ not yet implemented")
 
-    observe_gare_start!(observer, prob, NewtonADI())
+    @timeit_debug "callbacks" observe_gare_start!(observer, prob, NewtonADI())
     TL = TD = Matrix{Float64}
 
     @unpack E, A, Q = prob
@@ -42,11 +42,11 @@ function CommonSolve.solve(
 
         res = residual(prob, X; AᵀL, EᵀL, DLᵀGLD)
         res_norm = norm(res)
-        observe_gare_step!(observer, i, X, res, res_norm)
+        @timeit_debug "callbacks" observe_gare_step!(observer, i, X, res, res_norm)
 
         res_norm <= abstol && break
         if i >= maxiters
-            observe_gare_failed!(observer)
+            @timeit_debug "callbacks" observe_gare_failed!(observer)
             @warn "NewtonADI did not converge" residual=res_norm abstol maxiters
             break
         end
@@ -83,7 +83,8 @@ function CommonSolve.solve(
         end
 
         # Newton step:
-        X = solve(lyap, ADI();
+        X = @timeit_debug "ADI" solve(
+            lyap, ADI();
             maxiters=100,
             observer,
             initial_guess,
@@ -91,7 +92,7 @@ function CommonSolve.solve(
             adi_kwargs...)
     end
 
-    observe_gare_done!(observer, i, X, res, res_norm)
+    @timeit_debug "callbacks" observe_gare_done!(observer, i, X, res, res_norm)
     X
 end
 
