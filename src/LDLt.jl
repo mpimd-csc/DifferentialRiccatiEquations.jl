@@ -91,6 +91,10 @@ function Base.zero(X::LDLᵀ{TL,TD}) where {TL,TD}
 end
 
 function Base.:(+)(Xs::LDLᵀ{TL,TD}...) where {TL,TD}
+    if !allequal(size(X, 1) for X in Xs)
+        dims = unique(size(X, 1) for X in Xs)
+        throw(DimensionMismatch("outer dimensions must match, got $dims instead"))
+    end
     Ls = TL[]
     Ds = TD[]
     for X in Xs
@@ -102,6 +106,12 @@ function Base.:(+)(Xs::LDLᵀ{TL,TD}...) where {TL,TD}
 end
 
 function Base.:(+)(X::LDLᵀ{TL,TD}, LDs::Tuple{TL,TD}...) where {TL,TD}
+    if !all(==(size(X, 1)), size(Y[1], 1) for Y in LDs)
+        dims = [size(Y[1], 1) for Y in LDs]
+        pushfirst!(dims, size(X, 1))
+        unique!(dims)
+        throw(DimensionMismatch("outer dimensions must match, got $dims instead"))
+    end
     Ls = copy(X.Ls)
     Ds = copy(X.Ds)
     m = length(Ls)
@@ -117,6 +127,11 @@ function Base.:(+)(X::LDLᵀ{TL,TD}, LDs::Tuple{TL,TD}...) where {TL,TD}
 end
 
 function Base.:(-)(X::LDLᵀ{TL,TD}, Y::LDLᵀ{TL,TD}) where {TL,TD}
+    if size(X, 1) != size(Y, 1)
+        d1 = size(X, 1)
+        d2 = size(Y, 1)
+        throw(DimensionMismatch("outer dimensions must match, got $d1 and $d2 instead"))
+    end
     Ls = copy(X.Ls)
     Ds = copy(X.Ds)
     L, D = Y
