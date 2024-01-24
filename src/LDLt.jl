@@ -1,5 +1,7 @@
 # This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
 
+using Compat: allequal
+
 """
     LDLᵀ{TL,TD}(L::TL, D::TD)
     LDLᵀ{TL,TD}(Ls::Vector{TL}, Ds::Vector{TD})
