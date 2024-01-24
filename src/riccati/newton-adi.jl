@@ -12,6 +12,7 @@ function CommonSolve.solve(
     inexact::Bool = true,
     inexact_hybrid::Bool = true,
     inexact_forcing = quadratic_forcing,
+    linesearch::Bool = true,
 ) where {TG,TQ}
     TG <: LDLᵀ{<:AbstractMatrix,UniformScaling{Bool}} || error("TG=$TG not yet implemented")
     TQ <: LDLᵀ{<:AbstractMatrix,UniformScaling{Bool}} || error("TQ=$TQ not yet implemented")
@@ -31,17 +32,60 @@ function CommonSolve.solve(
     abstol = reltol * res_norm
 
     i = 0
+    local X_prev
     while true
         # Compute residual
         L, D = X
-        AᵀL = A'L
         EᵀL = E'L
         BᵀLD = (B'L)*D
         DLᵀGLD = (BᵀLD)'BᵀLD
         K = BᵀLD * (EᵀL)'
 
-        res = residual(prob, X; AᵀL, EᵀL, DLᵀGLD)
+        res = residual(prob, X; EᵀL, DLᵀGLD)
+        res_norm_prev = res_norm
         res_norm = norm(res)
+
+        if i > 0 && linesearch
+            @timeit_debug "Armijo line search" begin
+                α = 0.1
+                # The line search is mostly triggered for early Newton iterations `i`,
+                # where the linear systems to be solved have few columns and `X` has low rank.
+                # Therefore, an efficient implementation is not that important for now.
+                if res_norm > (1-α) * res_norm_prev
+                    X̃ = X # backup if line search fails
+                    β = 1/2 # Armijo parameter
+                    λ = β # step size
+                    while true
+                        # Check sufficient decrease condition:
+                        # (naive implementation)
+                        X = (1 - λ) * X_prev + λ * X̃
+                        res = residual(prob, X)
+                        res_norm = norm(res)
+                        if res_norm < (1 - λ*α) * res_norm_prev
+                            @debug "Accepting line search λ=$λ"
+                            # Update feedback matrix K and other auxillary variables:
+                            # (naive implementation)
+                            L, D = X
+                            EᵀL = E'L
+                            BᵀLD = (B'L)*D
+                            DLᵀGLD = (BᵀLD)'BᵀLD
+                            K .= BᵀLD * (EᵀL)'
+                            break
+                        end
+
+                        # Prepare next step size:
+                        λ *= β
+                        if λ < eps()
+                            @warn "Line search failed; using un-modified iterate"
+                            λ = 1.0
+                            X = X̃
+                            break
+                        end
+                    end
+                    @timeit_debug "callbacks" observe_gare_metadata!(observer, "line search", λ)
+                end
+            end
+        end
         @timeit_debug "callbacks" observe_gare_step!(observer, i, X, res, res_norm)
 
         res_norm <= abstol && break
@@ -73,16 +117,21 @@ function CommonSolve.solve(
                 # If the classical/"exact" tolerance is less strict than
                 # the one of the Inexact Newton, use that tolerance instead.
                 classical_abstol = adi_reltol * norm(lyap.C)
-                if classical_abstol > adi_abstol
+                switch_back = classical_abstol > adi_abstol
+                @timeit_debug "callbacks" observe_gare_metadata!(observer, "inexact", !switch_back)
+                if switch_back
                     @debug "Switching from inexact to classical Newton method" i inexact_abstol=adi_abstol classical_abstol
                     adi_abstol = classical_abstol
                 end
+            else
+                @timeit_debug "callbacks" observe_gare_metadata!(observer, "inexact", true)
             end
         else
             adi_abstol = adi_reltol * norm(lyap.C)
         end
 
         # Newton step:
+        X_prev = X
         X = @timeit_debug "ADI" solve(
             lyap, ADI();
             maxiters=100,

@@ -69,6 +69,9 @@ Supported keyword arguments:
   whether to switch to the classical Newton method,
   if the absolute Lyapunov tolerance of the classical Newton method
   is less strict (i.e. larger) than the tolerance `η * residual_norm`.
+* `linesearch = true`: whether to perform an Armijo line search
+  if the Riccati residual did not decrease sufficiently,
+  see e.g. Benner et al. (2015).
 
 Default arguments to Lyapunov solver, which can all be overwritten by `adi_kwargs`:
 
@@ -82,5 +85,7 @@ References:
 
 * Dembo, Eisenstat, Steihaug: Inexact Newton Methods. 1982.
   https://doi.org/10.1137/0719025
+* Benner, Heinkenschloss, Saak, Weichelt: Inexact low-rank Newton-ADI method for large-scale algebraic Riccati equations. 2015.
+  http://www.mpi-magdeburg.mpg.de/preprints/
 """
 struct NewtonADI <: AlgebraicRiccatiSolver end

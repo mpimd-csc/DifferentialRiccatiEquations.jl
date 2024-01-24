@@ -10,7 +10,7 @@
   (7b32660af73c23c0d710b215705688842aa0bb70)
 * Fix order of automatic/projection shifts: ensure that complex shifts occur in
   conjugated pairs directly one after the other (e36a1163f9db4796b334fbdf23c23ea4fd0aab9d)
-* Add Inexact Newton method following Dembo et al. (1982) to solve AREs;
+* Add Inexact Newton method following Dembo et al. (1982) and Benner et al. (2015) to solve AREs;
   see docstring of `NewtonADI` for more info
 
 # v0.3
