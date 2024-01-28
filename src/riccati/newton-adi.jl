@@ -8,7 +8,7 @@ function CommonSolve.solve(
     maxiters = 5,
     observer = nothing,
     adi_initprev::Bool = false,
-    adi_kwargs::NamedTuple = NamedTuple(),
+    adi_kwargs = NamedTuple(),
     inexact::Bool = true,
     inexact_hybrid::Bool = true,
     inexact_forcing = quadratic_forcing,

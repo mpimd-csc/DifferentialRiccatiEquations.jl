@@ -6,7 +6,7 @@ function _solve(
     dt::Real,
     save_state::Bool,
     observer,
-    adi_kwargs::NamedTuple=NamedTuple(),
+    adi_kwargs=NamedTuple(),
 ) where {TL,TD}
     observe_gdre_start!(observer, prob, Ros2())
 
