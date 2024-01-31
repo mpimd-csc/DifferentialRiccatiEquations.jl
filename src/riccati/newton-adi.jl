@@ -100,11 +100,12 @@ function CommonSolve.solve(
         F = lr_update(A, -1, B, K)
 
         # Right-hand side:
+        m = size(B, 2)
         q = size(Cᵀ, 2)
-        G::TL = _hcat(TL, Cᵀ, EᵀL)
-        S::TD = _dcat(TD, I(q), DLᵀGLD)
+        EᵀXB = EᵀL * (BᵀLD)'
+        G::TL = _hcat(TL, Cᵀ, EᵀXB)
+        S::TD = _dcat(TD, I(q), I(m))
         RHS = LDLᵀ(G, S)
-        compress!(RHS)
 
         # ADI setup
         lyap = GALEProblem(E, F, RHS)

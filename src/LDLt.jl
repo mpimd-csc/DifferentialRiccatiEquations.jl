@@ -92,56 +92,20 @@ function Base.zero(X::LDLᵀ{TL,TD}) where {TL,TD}
     LDLᵀ{TL,TD}(L, D)
 end
 
-function Base.:(+)(Xs::LDLᵀ{TL,TD}...) where {TL,TD}
-    if !allequal(size(X, 1) for X in Xs)
-        dims = unique(size(X, 1) for X in Xs)
-        throw(DimensionMismatch("outer dimensions must match, got $dims instead"))
+function Base.:(+)(X1::LDLᵀ{TL,TD}, X2::LDLᵀ) where {TL,TD}
+    if (n1 = size(X1, 1)) != (n2 = size(X2, 1))
+        throw(DimensionMismatch("outer dimensions must match, got $n1 and $n2 instead"))
     end
-    Ls = TL[]
-    Ds = TD[]
-    for X in Xs
-        append!(Ls, X.Ls)
-        append!(Ds, X.Ds)
-    end
+    Ls = copy(X1.Ls)
+    Ds = copy(X1.Ds)
+    append!(Ls, X2.Ls)
+    append!(Ds, X2.Ds)
     X = LDLᵀ{TL,TD}(Ls, Ds)
     maybe_compress!(X)
 end
 
-function Base.:(+)(X::LDLᵀ{TL,TD}, LDs::Tuple{TL,TD}...) where {TL,TD}
-    if !all(==(size(X, 1)), size(Y[1], 1) for Y in LDs)
-        dims = [size(Y[1], 1) for Y in LDs]
-        pushfirst!(dims, size(X, 1))
-        unique!(dims)
-        throw(DimensionMismatch("outer dimensions must match, got $dims instead"))
-    end
-    Ls = copy(X.Ls)
-    Ds = copy(X.Ds)
-    m = length(Ls)
-    n = m + length(LDs)
-    resize!(Ls, n)
-    resize!(Ds, n)
-    for (i, (L, D)) in zip(m+1:n, LDs)
-        Ls[i] = L
-        Ds[i] = D
-    end
-    Y = LDLᵀ{TL,TD}(Ls, Ds)
-    maybe_compress!(Y)
-end
-
-function Base.:(-)(X::LDLᵀ{TL,TD}, Y::LDLᵀ{TL,TD}) where {TL,TD}
-    if size(X, 1) != size(Y, 1)
-        d1 = size(X, 1)
-        d2 = size(Y, 1)
-        throw(DimensionMismatch("outer dimensions must match, got $d1 and $d2 instead"))
-    end
-    Ls = copy(X.Ls)
-    Ds = copy(X.Ds)
-    L, D = Y
-    push!(Ls, L)
-    push!(Ds, -D)
-    Z = LDLᵀ{TL,TD}(Ls, Ds)
-    maybe_compress!(Z)
-end
+Base.:(-)(X::LDLᵀ{TL,TD}) where {TL,TD} = LDLᵀ{TL,TD}(X.Ls, -X.Ds)
+Base.:(-)(X::LDLᵀ, Y::LDLᵀ) = X + (-Y)
 
 # TODO: Make this more efficient by storing the scalar as a field of LDLᵀ.
 function Base.:(*)(α::Real, X::LDLᵀ)

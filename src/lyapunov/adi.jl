@@ -45,7 +45,7 @@ function CommonSolve.solve(
             F = A' + μᵢ*E
             @timeit_debug "solve (real)" V = (F \ R)::TL
 
-            X += (V, Y)
+            X += LDLᵀ(V, Y)
             R -= (2μᵢ * (E'*V))::TL
             i += 1
 
@@ -64,7 +64,7 @@ function CommonSolve.solve(
             V′ = Vᵣ + δ*Vᵢ
             V₁ = √2 * V′
             V₂ = sqrt(2δ^2 + 2) * Vᵢ
-            X = X + (V₁, Y) + (V₂, Y)
+            X = X + LDLᵀ(V₁, Y) + LDLᵀ(V₂, Y)
             R -= (4real(μ) * (E'*V′))::TL
             i += 2
 

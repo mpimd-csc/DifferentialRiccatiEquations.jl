@@ -125,11 +125,7 @@ end
     X = sample(n, k)
     @test rank(X) == k
 
-    desc = ("LDLᵀ + LDLᵀ", "LDLᵀ + Tuple")
-    Ys = (X, (X...,))
-    @testset "$d" for (Y, d) in zip(Ys, desc)
-        @test rank(compress!(X+Y)) == k
-        @test rank(X+Y+Y) == k
-    end
+    @test rank(compress!(X+X)) == k
+    @test rank(X+X+X) == k
     #@test rank(X-X) == 0 # flaky
 end
