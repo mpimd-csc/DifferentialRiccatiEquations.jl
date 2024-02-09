@@ -3,7 +3,7 @@
 
 using Compat: @something
 
-function residual(
+@timeit_debug "residual(::GAREProblem, ::LDLᵀ)" function residual(
     prob::GAREProblem,
     X::LDLᵀ;
     AᵀL = nothing,

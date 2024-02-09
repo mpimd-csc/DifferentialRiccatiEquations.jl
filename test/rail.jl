@@ -93,7 +93,7 @@ using DifferentialRiccatiEquations.Shifts
         (shifts = Projection(2),), # leads to some complex shifts
         (shifts = Cyclic(Heuristic(10, 20, 20)), maxiters = 200),
     ]
-        X = solve(are, NewtonADI(); reltol, adi_kwargs)
+        X = solve(are, NewtonADI(); reltol, adi_kwargs, maxiters=10)
         @test norm(residual(are, X)) < reltol * norm(Q)
     end
 end

@@ -1,8 +1,6 @@
 # This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
 
 using UnPack
-using ArnoldiMethod: partialschur
-using LinearMaps: InverseMap, LinearMap
 
 """
     Shifts.Heuristic(nshifts, k₊, k₋)
@@ -26,15 +24,19 @@ function init(strategy::Heuristic, prob)
     # TODO: Think about caching of properties of E.
     # The matrix E shouldn't change all that much between iterations of the same algorithm,
     # or between algorithms in general.
-    solver(y, A, x) = (y .= A \ x)
-    E⁻¹A = InverseMap(E; solver) * LinearMap{eltype(A)}(x -> A*x, size(A)...)
-    A⁻¹E = InverseMap(A; solver) * LinearMap(E)
-    R₊ = compute_ritz_values(E⁻¹A, k₊)
-    R₋ = compute_ritz_values(A⁻¹E, k₋)
+    Ef = factorize(E)
+
+    b0 = ones(size(E, 1))
+    R₊ = compute_ritz_values(x -> Ef \ (A * x), b0, k₊, "E⁻¹A")
+    R₋ = compute_ritz_values(x -> A \ (E * x), b0, k₋, "A⁻¹E")
     # TODO: R₊ and R₋ may not be disjoint. Remove duplicates, or replace values that differ
     # by an eps with their average.
     R = vcat(R₊, inv.(R₋))
 
+    heuristic(R, nshifts)
+end
+
+function heuristic(R, nshifts=length(R))
     s(t, P) = prod(abs(t - p) / abs(t + p) for p in P)
 
     p = argmin(R) do p
@@ -55,7 +57,34 @@ function init(strategy::Heuristic, prob)
     return P
 end
 
-function compute_ritz_values(A, n::Int)
-    decomp, _ = partialschur(A; nev=n)
-    decomp.eigenvalues
+function compute_ritz_values(A, b0, k::Int, desc::String)
+    n = length(b0)
+    H = zeros(k + 1, k)
+    V = zeros(n, k + 1)
+    V[:, 1] .= (1.0 / norm(b0)) * b0
+
+    # Arnoldi
+    for j in 1:k
+        w = A(V[:, j])
+
+        # Repeated modified Gram-Schmidt (MGS)
+        for _ = 1:2
+            for i = 1:j
+                g = V[:, i]' * w
+                H[i, j] += g
+                w -= V[:, i] * g
+            end
+        end
+
+        H[j+1, j] = beta = norm(w)
+        V[:, j+1] .= (1.0 / beta) * w
+    end
+
+    ritz = eigvals(@view H[1:k, 1:k])
+
+    isstable(v) = real(v) < 0
+    all(isstable, ritz) && return ritz
+
+    @warn "Discarding unstable Ritz values of $desc"
+    filter!(isstable, ritz)
 end

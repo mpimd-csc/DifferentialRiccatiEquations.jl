@@ -14,6 +14,7 @@ using SparseArrays: SparseArrays,
                     issparse,
                     spzeros,
                     spdiagm
+using TimerOutputs: @timeit_debug
 
 include("Stuff.jl")
 
@@ -72,6 +73,7 @@ end
 export solve
 export GDREProblem, Ros1, Ros2, Ros3, Ros4
 export GAREProblem, NewtonADI
+export GALEProblem, ADI
 export LDLᵀ, concatenate!, compress!
 
 end

@@ -1,5 +1,7 @@
 # This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
 
+using Compat: allequal
+
 """
     LDLᵀ{TL,TD}(L::TL, D::TD)
     LDLᵀ{TL,TD}(Ls::Vector{TL}, Ds::Vector{TD})
@@ -64,7 +66,7 @@ The technique is similar to the one described in
 > Riccati equations, and linear-quadratic optimal control problems.
 > Numerical Linear Algebra with Applications 2008. DOI: 10.1002/nla.622
 """
-function LinearAlgebra.norm(X::LDLᵀ)
+@timeit_debug "norm(::LDLᵀ)" function LinearAlgebra.norm(X::LDLᵀ)
     # Decompose while not triggering compression.
     concatenate!(X)
     L = only(X.Ls)
@@ -90,41 +92,20 @@ function Base.zero(X::LDLᵀ{TL,TD}) where {TL,TD}
     LDLᵀ{TL,TD}(L, D)
 end
 
-function Base.:(+)(Xs::LDLᵀ{TL,TD}...) where {TL,TD}
-    Ls = TL[]
-    Ds = TD[]
-    for X in Xs
-        append!(Ls, X.Ls)
-        append!(Ds, X.Ds)
+function Base.:(+)(X1::LDLᵀ{TL,TD}, X2::LDLᵀ) where {TL,TD}
+    if (n1 = size(X1, 1)) != (n2 = size(X2, 1))
+        throw(DimensionMismatch("outer dimensions must match, got $n1 and $n2 instead"))
     end
+    Ls = copy(X1.Ls)
+    Ds = copy(X1.Ds)
+    append!(Ls, X2.Ls)
+    append!(Ds, X2.Ds)
     X = LDLᵀ{TL,TD}(Ls, Ds)
     maybe_compress!(X)
 end
 
-function Base.:(+)(X::LDLᵀ{TL,TD}, LDs::Tuple{TL,TD}...) where {TL,TD}
-    Ls = copy(X.Ls)
-    Ds = copy(X.Ds)
-    m = length(Ls)
-    n = m + length(LDs)
-    resize!(Ls, n)
-    resize!(Ds, n)
-    for (i, (L, D)) in zip(m+1:n, LDs)
-        Ls[i] = L
-        Ds[i] = D
-    end
-    Y = LDLᵀ{TL,TD}(Ls, Ds)
-    maybe_compress!(Y)
-end
-
-function Base.:(-)(X::LDLᵀ{TL,TD}, Y::LDLᵀ{TL,TD}) where {TL,TD}
-    Ls = copy(X.Ls)
-    Ds = copy(X.Ds)
-    L, D = Y
-    push!(Ls, L)
-    push!(Ds, -D)
-    Z = LDLᵀ{TL,TD}(Ls, Ds)
-    maybe_compress!(Z)
-end
+Base.:(-)(X::LDLᵀ{TL,TD}) where {TL,TD} = LDLᵀ{TL,TD}(X.Ls, -X.Ds)
+Base.:(-)(X::LDLᵀ, Y::LDLᵀ) = X + (-Y)
 
 # TODO: Make this more efficient by storing the scalar as a field of LDLᵀ.
 function Base.:(*)(α::Real, X::LDLᵀ)
@@ -161,7 +142,7 @@ This is a somewhat cheap operation.
 
 See also: [`compress!`](@ref)
 """
-function concatenate!(X::LDLᵀ{TL,TD}) where {TL,TD}
+@timeit_debug "concatenate!(::LDLᵀ)" function concatenate!(X::LDLᵀ{TL,TD}) where {TL,TD}
     @unpack Ls, Ds = X
     @assert length(Ls) == length(Ds)
     length(Ls) == 1 && return X
@@ -185,11 +166,11 @@ See also: [`concatenate!`](@ref)
 
 [^Lang2015]: N Lang, H Mena, and J Saak, "On the benefits of the LDLT factorization for large-scale differential matrix equation solvers" Linear Algebra and its Applications 480 (2015): 44-71. [doi:10.1016/j.laa.2015.04.006](https://doi.org/10.1016/j.laa.2015.04.006)
 """
-function compress!(X::LDLᵀ{TL,TD}) where {TL,TD}
+@timeit_debug "compress!(::LDLᵀ)" function compress!(X::LDLᵀ{TL,TD}) where {TL,TD}
     concatenate!(X)
     L = only(X.Ls)
     D = only(X.Ds)
-    if VERSION < v"1.7"
+    @timeit_debug "QR" if VERSION < v"1.7"
         Q, R, p = qr(L, Val(true)) # pivoting
     else
         Q, R, p = qr(L, ColumnNorm())
@@ -198,7 +179,7 @@ function compress!(X::LDLᵀ{TL,TD}) where {TL,TD}
     ip = invperm(p)
     RΠᵀ = R[:,ip]
     S = Symmetric(RΠᵀ*D*(RΠᵀ)')
-    λ, V = eigen(S; sortby = x -> -abs(x))
+    λ, V = @timeit_debug "Eigen" eigen(S; sortby = x -> -abs(x))
 
     # only use "large" eigenvalues,
     # cf. [Kürschner2016, p. 94]

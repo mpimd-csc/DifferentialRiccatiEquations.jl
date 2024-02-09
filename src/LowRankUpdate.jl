@@ -71,15 +71,17 @@ function _factorize(X::AbstractSparseMatrixCSC)
     return D
 end
 
-function Base.:(\)(AUV::LowRankUpdate, B::AbstractVecOrMat)
+@timeit_debug "Sherman-Morrison-Woodbury" function Base.:(\)(AUV::LowRankUpdate, B::AbstractVecOrMat)
     A, α, U, V = AUV
 
-    FA = _factorize(A)
-    A⁻¹B = FA \ B
-    A⁻¹U = FA \ U
+    FA = @timeit_debug "factorize (sparse)" _factorize(A)
+    A⁻¹B = @timeit_debug "solve (sparse 1)" FA \ B
+    A⁻¹U = @timeit_debug "solve (sparse 2)" FA \ U
 
-    S = α*I + V * A⁻¹U
-    S⁻¹VA⁻¹B = S \ (V * A⁻¹B)
+    @timeit_debug "solve (dense)" begin
+        S = α*I + V * A⁻¹U
+        S⁻¹VA⁻¹B = S \ (V * A⁻¹B)
+    end
 
     X = A⁻¹B - A⁻¹U*S⁻¹VA⁻¹B
     return X

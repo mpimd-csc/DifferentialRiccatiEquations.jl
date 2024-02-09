@@ -6,9 +6,11 @@ function _solve(
     dt::Real,
     save_state::Bool,
     adi_initprev::Bool=true,
-    adi_kwargs::NamedTuple=NamedTuple(),
+    adi_kwargs=NamedTuple(),
     observer,
 ) where {TL,TD}
+    @timeit_debug "callbacks" observe_gdre_start!(observer, prob, Ros1())
+
     T = LDLᵀ{TL,TD}
 
     @unpack E, A, B, C, tspan = prob
@@ -26,8 +28,7 @@ function _solve(
     Ks = [K]
     sizehint!(Ks, len)
 
-    observe_gdre_start!(observer, prob, Ros1())
-    observe_gdre_step!(observer, tstops[1], X, K)
+    @timeit_debug "callbacks" observe_gdre_step!(observer, tstops[1], X, K)
 
     for i in 2:len
         τ = tstops[i-1] - tstops[i]
@@ -43,7 +44,7 @@ function _solve(
         # Update X
         lyap = GALEProblem(E, F, R)
         initial_guess = adi_initprev ? X : nothing
-        X = solve(lyap, ADI(); observer, initial_guess, adi_kwargs...)
+        X = @timeit_debug "ADI" solve(lyap, ADI(); observer, initial_guess, adi_kwargs...)
         save_state && push!(Xs, X)
 
         # Update K
@@ -52,11 +53,11 @@ function _solve(
         K = BᵀLD*(L'*E)
         push!(Ks, K)
 
-        observe_gdre_step!(observer, tstops[i], X, K)
+        @timeit_debug "callbacks" observe_gdre_step!(observer, tstops[i], X, K)
     end
     save_state || push!(Xs, X)
 
-    observe_gdre_done!(observer)
+    @timeit_debug "callbacks" observe_gdre_done!(observer)
 
     return DRESolution(Xs, Ks, tstops)
 end

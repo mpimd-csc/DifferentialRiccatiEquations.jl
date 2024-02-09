@@ -7,6 +7,8 @@ function _solve(
     save_state::Bool,
     observer,
 )
+    observe_gdre_start!(observer, prob, alg)
+
     @unpack E, A, B, C, tspan = prob
     Ed = collect(E)
     X = prob.X0
@@ -20,7 +22,6 @@ function _solve(
     Ks = [K]
     sizehint!(Ks, len)
 
-    observe_gdre_start!(observer, prob, Ros1())
     observe_gdre_step!(observer, tstops[1], X, K)
 
     for i in 2:len

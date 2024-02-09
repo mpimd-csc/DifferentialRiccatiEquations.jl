@@ -83,18 +83,16 @@ export observe_gale_start!,
 export observe_gare_start!,
        observe_gare_step!,
        observe_gare_done!,
-       observe_gare_failed!
+       observe_gare_failed!,
+       observe_gare_metadata!
 export observe_gdre_start!,
        observe_gdre_step!,
        observe_gdre_done!
 
 """
-    observe_gale_start!(observer, prob::GALEProblem, alg::LyapunovSolver,
-                        abstol, reltol)
+    observe_gale_start!(observer, prob::GALEProblem, alg::LyapunovSolver)
 
 Notify `observer` at the start of solving the GALE.
-`abstol` and `reltol` denote the absolute and relative residual thresholds,
-at which the algorithm considers itself converged.
 """
 observe_gale_start!(::Any, args...) = nothing
 
@@ -186,5 +184,6 @@ observe_gare_start!(::Any, args...) = nothing
 observe_gare_step!(::Any, args...) = nothing
 observe_gare_done!(::Any, args...) = nothing
 observe_gare_failed!(::Any) = nothing
+observe_gare_metadata!(::Any, args...) = nothing
 
 end
