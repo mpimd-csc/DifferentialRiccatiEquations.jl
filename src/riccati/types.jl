@@ -19,6 +19,19 @@ struct GDREProblem{XT}
     GDREProblem(E, A, B, C, X0::XT, tspan) where {XT} = new{XT}(E, A, B, C, X0, tspan)
 end
 
+"""
+Solution to a generalized differential Riccati equation (DRE)
+as returned by [`solve(::GDREProblem, alg; kwargs...)`](@ref GDREProblem).
+The solution has three fields:
+
+* `X::Vector{T}`: state `X(t)`; `T` may be a `Matrix` or [`LDLᵀ`](@ref)
+* `K::Vector{<:Matrix}`: feedback `K(t) := B' * X(t) * E`
+* `t::Vector{<:Real}`: discretization time
+
+By default, the state `X` is only stored at the boundaries of the time span,
+as one is mostly interested only in the feedback matrices `K`.
+To store the full state trajectory, pass `save_state=true` to `solve`.
+"""
 struct DRESolution
     X
     K
