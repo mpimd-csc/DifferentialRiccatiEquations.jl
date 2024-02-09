@@ -24,8 +24,10 @@ function init(strategy::Heuristic, prob)
     # TODO: Think about caching of properties of E.
     # The matrix E shouldn't change all that much between iterations of the same algorithm,
     # or between algorithms in general.
+    Ef = factorize(E)
+
     b0 = ones(size(E, 1))
-    R₊ = compute_ritz_values(x -> E \ (A * x), b0, k₊, "E⁻¹A")
+    R₊ = compute_ritz_values(x -> Ef \ (A * x), b0, k₊, "E⁻¹A")
     R₋ = compute_ritz_values(x -> A \ (E * x), b0, k₋, "A⁻¹E")
     # TODO: R₊ and R₋ may not be disjoint. Remove duplicates, or replace values that differ
     # by an eps with their average.
