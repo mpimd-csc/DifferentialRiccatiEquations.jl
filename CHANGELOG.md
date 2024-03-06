@@ -1,4 +1,4 @@
-# DEV
+# v0.4
 
 * Fix LDLᵀ compression for indefinite objects (d6a649ad62ab6d413ce82e5a2b0090de813a33de)
 * Add callbacks to allow user to gather information during `solve` calls;
