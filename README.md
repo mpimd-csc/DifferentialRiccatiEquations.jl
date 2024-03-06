@@ -168,6 +168,14 @@ julia> import DifferentialRiccatiEquations.Shifts
 help?> Shifts
 ```
 
+# Acknowledgments
+
+I would like to thank the code reviewers:
+
+* Jens Saak (https://github.com/drittelhacker)
+* Martin Köhler (https://github.com/grisuthedragon)
+* Fan Wang (https://github.com/FanWang00)
+
 # License
 
 The DifferentialRiccatiEquations package is licensed under [MIT], see `LICENSE`.
