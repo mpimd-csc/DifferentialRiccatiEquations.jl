@@ -59,6 +59,11 @@ function take_many!(it::ProjectionShiftIterator)
     Q = orth(N)
     Ẽ = restrict(E, Q)
     Ã = restrict(A, Q)
+
+    # Ensure data lives on the CPU
+    T = Matrix{eltype(E)}
+    Ẽ = adapt(T, Ẽ)
+    Ã = adapt(T, Ã)
     λ = eigvals(Ã, Ẽ)
     # TODO: flip values at imaginary axes instead
     λ₋ = filter(l -> real(l) < 0, λ)

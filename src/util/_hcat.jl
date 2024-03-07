@@ -5,7 +5,7 @@ _hcat(::Type{T}, X, Xs...) where {T} = _hcat(T, (X, Xs...))
 function _hcat(::Type{T}, Xs) where {T}
     m = size(first(Xs), 1)
     n = sum(X -> size(X, 2), Xs)
-    L = _zeros(T, m, n)
+    L = similar(T, m, n)
     k = 0
     for X in Xs
         l = size(X, 2)

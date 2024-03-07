@@ -65,22 +65,20 @@ The technique is similar to the one described in
 > Benner, Li, Penzl. Numerical solution of large-scale Lyapunov equations,
 > Riccati equations, and linear-quadratic optimal control problems.
 > Numerical Linear Algebra with Applications 2008. DOI: 10.1002/nla.622
+
+See also: [`orthf`](@ref)
 """
 @timeit_debug "norm(::LDLᵀ)" function LinearAlgebra.norm(X::LDLᵀ)
     # Decompose while not triggering compression.
     concatenate!(X)
     L = only(X.Ls)
     D = only(X.Ds)
-    # TODO: use specialized TSQR ("tall and skinny QR") algorithm.
     # TODO: evaluate whether `compress!` could share any code with `norm`.
-    if VERSION < v"1.7"
-        _, R = qr(L, Val(false)) # no pivoting
-    else
-        _, R = qr(L, NoPivot())
-    end
-    # The Q operator of the QR decomposition does not alter the Frobenius norm.
+    _, R = orthf(L)
+    # The Q operator of the orth-plus-square decomposition does not alter the Frobenius norm.
     # It may therefore be omitted from the matrix inside the norm.
-    norm(R * D * R')
+    R = adapt(typeof(D), R)
+    norm(restrict(D, R'))
 end
 
 LinearAlgebra.rank(X::LDLᵀ) = sum(D -> size(D, 1), X.Ds)
@@ -162,7 +160,7 @@ Concatenate the internal components and perform a column compression following [
 
 This is an expensive operation.
 
-See also: [`concatenate!`](@ref)
+See also: [`concatenate!`](@ref), [`orthf`](@ref)
 
 [^Lang2015]: N Lang, H Mena, and J Saak, "On the benefits of the LDLT factorization for large-scale differential matrix equation solvers" Linear Algebra and its Applications 480 (2015): 44-71. [doi:10.1016/j.laa.2015.04.006](https://doi.org/10.1016/j.laa.2015.04.006)
 """
@@ -170,27 +168,39 @@ See also: [`concatenate!`](@ref)
     concatenate!(X)
     L = only(X.Ls)
     D = only(X.Ds)
-    @timeit_debug "QR" if VERSION < v"1.7"
-        Q, R, p = qr(L, Val(true)) # pivoting
-    else
-        Q, R, p = qr(L, ColumnNorm())
-    end
 
-    ip = invperm(p)
-    RΠᵀ = R[:,ip]
-    S = Symmetric(RΠᵀ*D*(RΠᵀ)')
-    λ, V = @timeit_debug "Eigen" eigen(S; sortby = x -> -abs(x))
+    Q, R = @timeit_debug "orthf" orthf(L)
+    R = adapt(TD, R)
+    S = Symmetric(restrict(D, R'))
+    λ, V = @timeit_debug "eigen" eigen(S)
 
-    # only use "large" eigenvalues,
-    # cf. [Kürschner2016, p. 94]
-    # (modified to retain negative ones)
-    ε = max(1, abs(λ[1])) * length(λ) * eps()
-    r = something(findlast(l -> abs(l) >= ε, λ), 0)
+    ε = 100 * maximum(abs, λ) * eps()
+    ids = findall(l -> abs(l) >= ε, λ)
+    @debug "compress!(::LDLᵀ)" extrema(λ) count(>(ε), λ) count(<(-ε), λ) oldrank=length(λ) newrank=length(ids)
 
-    @debug "compress!(::LDLᵀ)" λ[1] λ[end] count(>(ε), λ) count(<(-ε), λ) oldrank=size(D,1) newrank=r
-
-    Vᵣ = @view V[:, 1:r]
+    Vᵣ = V[:, ids]
+    Vᵣ = adapt(TL, Vᵣ)
     X.Ls[1] = (Q * Vᵣ)::TL
-    X.Ds[1] = _diagm(TD, λ[1:r])::TD
+    X.Ds[1] = _diagm(TD, λ[ids])::TD
     return X
+end
+
+"""
+    orthf(L) -> Q, R
+
+Compute economy-size factorization `L ≈ Q * R` with orthogonal `Q` and square `R`.
+
+Default: pivoted QR decomposition
+
+This is an internal helper routine within [`compress!`](@ref) and `norm(::LDLᵀ)`,
+which is applied to the outer factor of a low-rank factorization.
+"""
+function orthf(L)
+    # TODO: use specialized TSQR ("tall and skinny QR") algorithm.
+
+    pivoted = VERSION < v"1.7" ? Val(true) : ColumnNorm()
+    Q, R, p = qr(L, pivoted)
+    ip = invperm(p)
+    RΠᵀ = R[:, ip]
+    Q, RΠᵀ
 end

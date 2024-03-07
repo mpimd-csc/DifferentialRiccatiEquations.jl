@@ -23,8 +23,8 @@ function _solve(
     Xs = [X]
     save_state && sizehint!(Xs, len)
     L, D = X
-    BᵀLD = (B'*L)*D
-    K = BᵀLD*(L'*E)
+    BᵀLD = adapt(TD, B'L) * D
+    K = adapt(TL, BᵀLD) * (L'E)
     Ks = [K]
     sizehint!(Ks, len)
 
@@ -49,8 +49,8 @@ function _solve(
 
         # Update K
         L, D = X
-        BᵀLD = (B'*L)*D
-        K = BᵀLD*(L'*E)
+        BᵀLD = adapt(TD, B'L) * D
+        K = adapt(TL, BᵀLD) * (L'E)
         push!(Ks, K)
 
         @timeit_debug "callbacks" observe_gdre_step!(observer, tstops[i], X, K)

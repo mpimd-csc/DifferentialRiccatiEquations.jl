@@ -36,7 +36,7 @@ For sparse `A`, return a [`LowRankUpdate`](@ref).
 lr_update
 
 lr_update(A::Matrix{T}, α, U, V) where {T} = A + (inv(α)*U)*V
-lr_update(A::AbstractSparseMatrixCSC, α, U, V) = LowRankUpdate(A, α, U, V)
+lr_update(A::AbstractSparseMatrix, α, U, V) = LowRankUpdate(A, α, U, V)
 
 Base.eltype(::Type{LowRankUpdate{TA,T,TU,TV}}) where {TA,T,TU,TV} = Base.promote_eltype(TA, T, TU, TV)
 
@@ -58,25 +58,24 @@ function Matrix(AUV::LowRankUpdate)
     A + inv(α) * (U * V)
 end
 
-_factorize(X) = factorize(X)
-function _factorize(X::AbstractSparseMatrixCSC)
-    F = factorize(X)
-    F isa Diagonal || return F
-    # If `F` is a `Diagonal`, its diagonal `F.diag` will be a `SparseVector`.
-    # Given that `F` defines an invertible operator, its diagonal is effectively
-    # a dense vector. In this setting, the sparse vector type incurs a certain
-    # runtime overhead when solving linear systems in `F` as compared to a dense
-    # vector type. Get rid of this overhead:
-    D = Diagonal(Vector(F.diag))
-    return D
-end
-
 @timeit_debug "Sherman-Morrison-Woodbury" function Base.:(\)(AUV::LowRankUpdate, B::AbstractVecOrMat)
     A, α, U, V = AUV
 
-    FA = @timeit_debug "factorize (sparse)" _factorize(A)
-    A⁻¹B = @timeit_debug "solve (sparse 1)" FA \ B
-    A⁻¹U = @timeit_debug "solve (sparse 2)" FA \ U
+    n = size(B, 1)
+    k = size(B, 2)
+    A⁻¹_BU = @timeit_debug "solve (sparse)" begin
+        BU = similar(B, n, k + size(U, 2))
+        BU[:, 1:k] = B
+        BU[:, k+1:end] = U
+        A \ BU
+    end
+    A⁻¹B = if B isa AbstractVector
+        @assert k == 1
+        @view A⁻¹_BU[:, 1]
+    else
+        @view A⁻¹_BU[:, 1:k]
+    end
+    A⁻¹U = @view A⁻¹_BU[:, k+1:end]
 
     @timeit_debug "solve (dense)" begin
         S = α*I + V * A⁻¹U
