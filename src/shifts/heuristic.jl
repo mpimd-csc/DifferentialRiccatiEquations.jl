@@ -1,5 +1,6 @@
 # This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
 
+import KernelAbstractions as KA
 using UnPack
 
 """
@@ -44,10 +45,13 @@ end
 Create a dense vector `b0` to start the Arnoldi process with.
 The resulting vector must support `E * b0`,
 i.e. the data should be located on the same compute device.
-
-Default: `ones(eltype(E), size(E, 1))`
 """
-arnoldi_b0(E) = ones(eltype(E), size(E, 1))
+function arnoldi_b0(E)
+    backend = KA.get_backend(E)
+    T = eltype(E)
+    n = size(E, 2)
+    KA.ones(backend, T, n)
+end
 
 function heuristic(R, nshifts=length(R))
     s(t, P) = prod(abs(t - p) / abs(t + p) for p in P)
