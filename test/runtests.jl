@@ -18,5 +18,6 @@ using DifferentialRiccatiEquations.Stuff: orth
     end
     @testset "residual" begin include("residual.jl") end
     @testset "ADI Shifts" begin include("Shifts.jl") end
+    @testset "Tiny Random" begin include("tiny_random.jl") end
     @testset "Oberwolfach Rail" begin include("rail.jl") end
 end

@@ -26,6 +26,8 @@ include("LDLt.jl")
 include("LowRankUpdate.jl")
 include("lyapunov/types.jl")
 include("lyapunov/adi.jl")
+include("lyapunov/bartels-stewart.jl")
+include("lyapunov/kronecker.jl")
 include("lyapunov/residual.jl")
 
 include("util/_zeros.jl")
@@ -75,7 +77,7 @@ export solve
 export residual
 export GDREProblem, Ros1, Ros2, Ros3, Ros4
 export GAREProblem, NewtonADI
-export GALEProblem, ADI
+export GALEProblem, ADI, BartelsStewart, Kronecker
 export LDLᵀ, concatenate!, compress!
 
 end
