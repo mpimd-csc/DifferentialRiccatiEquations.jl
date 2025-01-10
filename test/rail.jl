@@ -81,7 +81,6 @@ end
     end
 end
 
-using DifferentialRiccatiEquations: residual
 using DifferentialRiccatiEquations.Shifts
 
 @testset "NewtonADI()" begin

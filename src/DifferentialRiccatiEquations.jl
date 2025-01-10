@@ -26,6 +26,7 @@ include("LDLt.jl")
 include("LowRankUpdate.jl")
 include("lyapunov/types.jl")
 include("lyapunov/adi.jl")
+include("lyapunov/residual.jl")
 
 include("util/_zeros.jl")
 include("util/_diagm.jl")
@@ -71,6 +72,7 @@ function CommonSolve.solve(
 end
 
 export solve
+export residual
 export GDREProblem, Ros1, Ros2, Ros3, Ros4
 export GAREProblem, NewtonADI
 export GALEProblem, ADI

@@ -18,6 +18,7 @@ using Compat: @something
     h = size(Cᵀ, 2)
     zₖ = size(L, 2)
     dim = h + 2zₖ
+    dim == h && return Q
     @debug "Assembling ARE residual" h zₖ
 
     # Compute optional inputs
@@ -41,4 +42,18 @@ using Compat: @something
     T[b3, b3] .= -DLᵀGLD
 
     LDLᵀ(R, T)
+end
+
+@timeit_debug "residual(::GAREProblem, ::Matrix)" function residual(
+    prob::GAREProblem,
+    X::Matrix;
+)
+
+    @unpack E, A, G, Q = prob
+    B, D = G
+    BᵀXE = (B' * X) * E
+    res = Matrix(Q)
+    res += A' * X * E
+    res += E' * X * A
+    res += (BᵀXE)' * D * BᵀXE
 end
