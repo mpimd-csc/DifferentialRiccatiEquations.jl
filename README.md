@@ -40,7 +40,7 @@ as well as the `Ros1`, `Ros2`, `Ros3`, and `Ros4` solver types.
 The package can be installed from Julia's REPL:
 
 ```
-pkg> add git@gitlab.mpi-magdeburg.mpg.de:jschulze/DifferentialRiccatiEquations.jl.git
+pkg> add DifferentialRiccatiEquations
 ```
 
 To run the following demos, you further need the following packages and standard libraries:
