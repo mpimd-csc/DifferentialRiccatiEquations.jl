@@ -9,7 +9,7 @@ g = 4
 
 delta(a, b) = norm(a - b) / max(norm(a), norm(b))
 
-function test_ale(E, A, g=g; broken=false)
+function test_ale(E, A, g=g)
     n = size(E, 1)
     G = rand(n, g)
     S = Matrix{Float64}(I(g))
@@ -22,15 +22,11 @@ function test_ale(E, A, g=g; broken=false)
     X_ref = solve(prob, BartelsStewart())
     X_bad = solve(prob, Kronecker())
     @test norm(residual(prob, X_ref)) / res0 < 1e-10
+    @test norm(residual(prob, X_adi)) / res0 < 1e-10
     @test norm(residual(prob, X_bad)) / res0 < 0.02
+
+    @test delta(Matrix(X_adi), X_ref) < 1e-10
     @test delta(X_bad, X_ref) < 0.02
-    if broken
-        @test_broken norm(residual(prob, X_adi)) / res0 < 1e-10
-        @test_skip delta(Matrix(X_adi), X_ref) < 1e-10
-    else
-        @test norm(residual(prob, X_adi)) / res0 < 1e-10
-        @test delta(Matrix(X_adi), X_ref) < 1e-10
-    end
 end
 
 @testset "Symmetric E" begin
@@ -69,8 +65,8 @@ end
         A = A + A' - n*I
         @assert isposdef(-A)
 
-        test_ale(E, A; broken=true)
-        test_ale(E, Symmetric(A); broken=true)
+        test_ale(E, A)
+        test_ale(E, Symmetric(A))
     end
 
     @testset "Non-Symmetric A" begin
@@ -78,6 +74,6 @@ end
         A = A - n*I
         @assert all(<(0), real.(eigvals(Matrix(A))))
 
-        test_ale(E, A; broken=true)
+        test_ale(E, A)
     end
 end
