@@ -16,6 +16,8 @@ using DifferentialRiccatiEquations.Stuff: orth
         Qs = orth(Ns)
         @test size(Qs) == (4, 0)
     end
+    @testset "residual" begin include("residual.jl") end
     @testset "ADI Shifts" begin include("Shifts.jl") end
+    @testset "Tiny Random" begin include("tiny_random.jl") end
     @testset "Oberwolfach Rail" begin include("rail.jl") end
 end

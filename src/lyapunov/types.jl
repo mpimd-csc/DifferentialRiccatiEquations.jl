@@ -17,3 +17,5 @@ end
 
 abstract type LyapunovSolver end
 struct ADI <: LyapunovSolver end
+struct BartelsStewart <: LyapunovSolver end
+struct Kronecker <: LyapunovSolver end

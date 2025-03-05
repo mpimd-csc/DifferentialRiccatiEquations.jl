@@ -1,3 +1,9 @@
+# v0.4.1
+
+* Fix ADI for ALEs with non-symmetric matrices (e62cb82b2c3c3dbf130b2918e2f0a43ed7616133)
+* Add `BartelsStewart` and (naive) `Kronecker` solvers for ALEs (22db62a4646c9a422be2d2bc0eea7ace70de1257)
+* Export `residual` (8a02c62d98904035186b88e9d7c5a43d103a4685)
+
 # v0.4
 
 * Fix LDLᵀ compression for indefinite objects (d6a649ad62ab6d413ce82e5a2b0090de813a33de)
