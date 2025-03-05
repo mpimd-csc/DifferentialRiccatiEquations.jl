@@ -5,12 +5,13 @@ module DifferentialRiccatiEquations
 using CommonSolve: CommonSolve, solve
 using Compat: @something
 
+using Adapt: adapt
 using LinearAlgebra
 using MatrixEquations: lyapc, lyapcs!, utqu!
 using UnPack: @unpack
 using SparseArrays: SparseArrays,
                     SparseMatrixCSC,
-                    AbstractSparseMatrixCSC,
+                    AbstractSparseMatrix,
                     issparse,
                     spzeros,
                     spdiagm

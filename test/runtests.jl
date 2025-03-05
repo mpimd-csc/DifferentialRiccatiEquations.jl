@@ -4,6 +4,7 @@ using Test
 using DifferentialRiccatiEquations
 using SparseArrays
 using DifferentialRiccatiEquations.Stuff: orth
+using CUDA
 
 @testset "DifferentialRiccatiEquations.jl" begin
     @testset "LDLᵀ" begin include("LDLt.jl") end
@@ -20,4 +21,8 @@ using DifferentialRiccatiEquations.Stuff: orth
     @testset "ADI Shifts" begin include("Shifts.jl") end
     @testset "Tiny Random" begin include("tiny_random.jl") end
     @testset "Oberwolfach Rail" begin include("rail.jl") end
+
+    if CUDA.functional()
+        @testset "CUDA" begin include("cuda.jl") end
+    end
 end

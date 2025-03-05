@@ -68,6 +68,8 @@ end
 """
 module Shifts
 
+using Adapt: adapt
+
 export Cyclic, Wrapped
 export Heuristic, Projection
 

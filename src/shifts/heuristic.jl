@@ -1,5 +1,6 @@
 # This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
 
+import KernelAbstractions as KA
 using UnPack
 
 """
@@ -26,7 +27,9 @@ function init(strategy::Heuristic, prob)
     # or between algorithms in general.
     Ef = factorize(E)
 
-    b0 = ones(size(E, 1))
+    # Create a dense vector of ones on the same compute backend as A and E.
+    b0 = arnoldi_b0(E)
+
     R₊ = compute_ritz_values(x -> Ef \ (A * x), b0, k₊, "E⁻¹A")
     R₋ = compute_ritz_values(x -> A \ (E * x), b0, k₋, "A⁻¹E")
     # TODO: R₊ and R₋ may not be disjoint. Remove duplicates, or replace values that differ
@@ -34,6 +37,20 @@ function init(strategy::Heuristic, prob)
     R = vcat(R₊, inv.(R₋))
 
     heuristic(R, nshifts)
+end
+
+"""
+    arnoldi_b0(E) -> b0
+
+Create a dense vector `b0` to start the Arnoldi process with.
+The resulting vector must support `E * b0`,
+i.e. the data should be located on the same compute device.
+"""
+function arnoldi_b0(E)
+    backend = KA.get_backend(E)
+    T = eltype(E)
+    n = size(E, 2)
+    KA.ones(backend, T, n)
 end
 
 function heuristic(R, nshifts=length(R))
@@ -57,10 +74,10 @@ function heuristic(R, nshifts=length(R))
     return P
 end
 
-function compute_ritz_values(A, b0, k::Int, desc::String)
+function compute_ritz_values(A, b0::AbstractVector, k::Int, desc::String)
     n = length(b0)
     H = zeros(k + 1, k)
-    V = zeros(n, k + 1)
+    V = similar(b0, n, k + 1)
     V[:, 1] .= (1.0 / norm(b0)) * b0
 
     # Arnoldi
@@ -70,7 +87,7 @@ function compute_ritz_values(A, b0, k::Int, desc::String)
         # Repeated modified Gram-Schmidt (MGS)
         for _ = 1:2
             for i = 1:j
-                g = V[:, i]' * w
+                g = view(V, :, i)' * w
                 H[i, j] += g
                 w -= V[:, i] * g
             end
