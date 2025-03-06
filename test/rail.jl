@@ -3,15 +3,19 @@
 using Test
 using DifferentialRiccatiEquations
 using LinearAlgebra, SparseArrays
-using MAT, UnPack
+using UnPack
+using MORWiki: SteelProfile, assemble
 
 const DREs = DifferentialRiccatiEquations
 
-# Dense Setup
-P = matread(joinpath(@__DIR__, "Rail371.mat"))
-@unpack E, A, B, C, X0 = P
+# Ensure headless downloads succeed:
+ENV["DATADEPS_ALWAYS_ACCEPT"] = 1
+
+# Load system
+@unpack E, A, B, C = assemble(SteelProfile(371))
+B = Matrix(B)
+C = Matrix(C)
 tspan = (4500., 4400.) # backwards in time
-prob = GDREProblem(E, A, B, C, X0, tspan)
 
 # Low-Rank Setup With Dense D
 q = size(C, 1)
@@ -24,6 +28,14 @@ sprob1 = GDREProblem(E, A, B, C, X0s, tspan)
 Ds = sparse(0.01I(q))
 X0ss = LDLᵀ(L, Ds)
 sprob2 = GDREProblem(E, A, B, C, X0ss, tspan)
+
+# Dense Setup
+X0 = Matrix(X0s)
+prob = GDREProblem(E, A, B, C, X0, tspan)
+
+# Verify Low-Rank Setup
+@test E * X0 * E' ≈ C' * C / 100
+@test Matrix(X0ss) ≈ X0
 
 Δt(nsteps::Int) = (tspan[2] - tspan[1]) ÷ nsteps
 
@@ -42,10 +54,6 @@ end
 @testset "Dense $alg" for alg in (Ros1(), Ros2(), Ros3(), Ros4())
     smoketest(prob, alg)
 end
-
-# Verify Low-Rank Setup
-@test Matrix(X0s) ≈ X0
-@test Matrix(X0ss) ≈ X0
 
 @testset "Low-Rank Ros1()" begin
     alg = Ros1()

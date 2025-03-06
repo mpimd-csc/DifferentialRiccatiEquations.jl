@@ -1,6 +1,7 @@
 # v0.5.x
 
 * Breaking: Require Julia v1.10
+* Breaking: Remove `test/Rail371.mat`; use `SteelProfile(371)` from MORWiki.jl instead
 * Add rudimentary GPU support
 
 # v0.4.1
