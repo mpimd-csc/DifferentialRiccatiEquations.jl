@@ -25,12 +25,19 @@ using .Callbacks
 
 include("LDLt.jl")
 include("LowRankUpdate.jl")
+
+# Linear (block) vector solvers:
+include("blocklinear/types.jl")
+include("blocklinear/backslash.jl")
+
+# Linear matrix equations:
 include("lyapunov/types.jl")
 include("lyapunov/adi.jl")
 include("lyapunov/bartels-stewart.jl")
 include("lyapunov/kronecker.jl")
 include("lyapunov/residual.jl")
 
+# Utilities:
 include("util/_zeros.jl")
 include("util/_diagm.jl")
 include("util/_dcat.jl")
@@ -43,6 +50,7 @@ struct Ros2 <: Algorithm end
 struct Ros3 <: Algorithm end
 struct Ros4 <: Algorithm end
 
+# Nonlinear matrix equations:
 include("riccati/types.jl")
 include("riccati/residual.jl")
 

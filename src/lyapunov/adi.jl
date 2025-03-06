@@ -43,7 +43,11 @@ function CommonSolve.solve(
         if isreal(μ)
             μᵢ = real(μ)
             F = A' + (μᵢ*E)'
-            @timeit_debug "solve (real)" V = (F \ R)::TL
+            @timeit_debug "solve (real)" begin
+                inner_prob = BlockLinearProblem(F, R)
+                inner_alg = Backslash()
+                V = solve(inner_prob, inner_alg)::TL
+            end
 
             X += LDLᵀ(V, Y)
             R -= (2μᵢ * (E'*V))::TL
@@ -56,7 +60,11 @@ function CommonSolve.solve(
             @timeit_debug "callbacks" observe_gale_metadata!(observer, "ADI shifts", μ_next)
             μᵢ = μ
             F = A' + (conj(μᵢ)*E)'
-            @timeit_debug "solve (complex)" V = F \ R
+            @timeit_debug "solve (complex)" begin
+                inner_prob = BlockLinearProblem(F, R)
+                inner_alg = Backslash()
+                V = solve(inner_prob, inner_alg)
+            end
 
             δ = real(μᵢ) / imag(μᵢ)
             Vᵣ = real(V)
