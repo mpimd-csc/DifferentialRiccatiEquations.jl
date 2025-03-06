@@ -46,7 +46,7 @@ pkg> add DifferentialRiccatiEquations
 To run the following demos, you further need the following packages and standard libraries:
 
 ```
-pkg> add LinearAlgebra MAT SparseArrays UnPack
+pkg> add LinearAlgebra MORWiki SparseArrays UnPack
 ```
 
 What follows is a slightly more hands-on version of `test/rail.jl`.
@@ -57,18 +57,27 @@ Please refer to the latter for missing details.
 The easiest setting is perhaps the dense one,
 i.e. the system matrices `E`, `A`, `B`, and `C`
 as well as the solution trajectory `X` are dense.
-First, load the system matrices from e.g. `test/Rail371.mat`
-(see [License](#license) section below)
+First, load the system matrices from, e.g., [MOR Wiki]
 and define the problem parameters.
 
 ```julia
 using DifferentialRiccatiEquations
 using LinearAlgebra
-using MAT, UnPack
+using MORWiki: SteelProfile, assemble
+using UnPack: @unpack
 
-P = matread("Rail371.mat")
-@unpack E, A, B, C, X0 = P
+@unpack E, A, B, C = assemble(SteelProfile(371))
 
+# Ensure dense storage:
+B = Matrix(B)
+C = Matrix(C)
+
+# Assemble initial value:
+E⁻¹Cᵀ = E \ Matrix(C')
+E⁻¹Cᵀ ./= 10
+X0 = E⁻¹Cᵀ * (E⁻¹Cᵀ)'
+
+# Problem parameters:
 tspan = (4500., 0.) # backwards in time
 ```
 
@@ -179,12 +188,6 @@ I would like to thank the code reviewers:
 # License
 
 The DifferentialRiccatiEquations package is licensed under [MIT], see `LICENSE`.
-
-The `test/Rail371.mat` data file stems from [BennerSaak2005] and is licensed under [CC-BY-4.0].
-See [MOR Wiki] for further information.
-
-> **Warning**
-> The output matrix `C` of the included configuration differs from all the other configurations hosted at [MOR Wiki] by a factor of 10.
 
 [Penzl1999]: https://doi.org/10.1137/S1064827598347666
 [BennerSaak2005]: http://nbn-resolving.de/urn:nbn:de:swb:ch1-200601597
