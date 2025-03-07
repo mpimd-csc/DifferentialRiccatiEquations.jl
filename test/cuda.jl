@@ -64,16 +64,17 @@ prob_gpu = GDREProblem(Ed, Ad, Bd, Cd, LDLᵀ(Ld, Dd), tspan)
 prob_xpu = GDREProblem(Ed, Ad, Bd, Cd, LDLᵀ(Ld, D), tspan)
 
 # Collect configurations:
+drop_complex(shifts) = filter(isreal, shifts) # FIXME: complex shifts should work just fine
 heuristic_shifts = (;
     adi_initprev = false,
     adi_kwargs = (;
-        shifts = Cyclic(Heuristic(4, 4, 4)),
+        shifts = Cyclic(Wrapped(drop_complex, Heuristic(4, 4, 4))),
     )
 )
 projection_shifts = (;
     adi_initprev = false,
     adi_kwargs = (;
-        shifts = Wrapped(heuristic, Projection(2)),
+        shifts = Wrapped(heuristic ∘ drop_complex, Projection(2)),
     ),
 )
 

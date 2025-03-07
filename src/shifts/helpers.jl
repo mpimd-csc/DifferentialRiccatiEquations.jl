@@ -34,6 +34,9 @@ Wrapped(reverse, Projection(2))
 Wrapped(Projection(4)) do shifts
     filter(s -> real(s) < -1, shifts)
 end
+Wrapped(Heuristic(10, 10, 10)) do shifts
+    filter(isreal, shifts)
+end
 ```
 """
 struct Wrapped <: Strategy
@@ -74,7 +77,7 @@ end
 # Allow Cyclic(42) for convenience:
 _init(values, _) = values
 _init(s::Strategy, prob) = init(s, prob)
-init(c::Cyclic, prob) = Stateful(cycle(_init(c.inner, prob)))
+init(c::Cyclic, prob) = Stateful(cycle(take_many!(_init(c.inner, prob))))
 
 # Ensure that BufferedIterator remains the outer-most structure:
 _wrap(it, func!) = WrappedIterator(func!, it)
@@ -84,6 +87,7 @@ init(w::Wrapped, prob) = _wrap(init(w.inner, prob), w.func!)
 update!(it::BufferedIterator, args...) = update!(it.generator, args...)
 update!(it::WrappedIterator, args...) = update!(it.generator, args...)
 
+take_many!(values) = values
 take_many!(it::WrappedIterator) = it.func!(take_many!(it.generator))
 
 function take!(it::BufferedIterator)
