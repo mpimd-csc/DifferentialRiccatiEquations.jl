@@ -73,6 +73,13 @@ end
         @test take!(shifts) == conj(p)
         @test take!(shifts) == p
     end
+
+    @testset "Wrapped" begin
+        strategy = Cyclic(Wrapped(Base.splat(Returns(42)), Heuristic(1, 1, 1)))
+        shifts = init(strategy, (; E, A))
+        @test take!(shifts) === 42
+        @test take!(shifts) === 42
+    end
 end
 
 struct Dummy <: Shifts.Strategy values end

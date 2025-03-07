@@ -3,6 +3,7 @@
 * Breaking: Require Julia v1.10
 * Breaking: Remove `test/Rail371.mat`; use `SteelProfile(371)` from MORWiki.jl instead
 * Add rudimentary GPU support
+* Fix `Shifts` helpers: allow, e.g., `Cyclic(Wrapped(real, Heuristic(3, 3, 3)))` (e64da1e1beeae478fe4a5bae2bd76d31bededf06)
 
 # v0.4.1
 

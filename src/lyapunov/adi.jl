@@ -42,7 +42,7 @@ function CommonSolve.solve(
         Y = (-2real(μ) * T)::TD
         if isreal(μ)
             μᵢ = real(μ)
-            F = A' + μᵢ*E'
+            F = A' + (μᵢ*E)'
             @timeit_debug "solve (real)" V = (F \ R)::TL
 
             X += LDLᵀ(V, Y)
@@ -55,7 +55,7 @@ function CommonSolve.solve(
             @assert μ_next ≈ conj(μ)
             @timeit_debug "callbacks" observe_gale_metadata!(observer, "ADI shifts", μ_next)
             μᵢ = μ
-            F = A' + μᵢ*E'
+            F = A' + (conj(μᵢ)*E)'
             @timeit_debug "solve (complex)" V = F \ R
 
             δ = real(μᵢ) / imag(μᵢ)
