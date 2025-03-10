@@ -149,11 +149,11 @@ Note that there are currently no pre-built observers.
 
 ## ADI shift parameter selection
 
-The ADI shifts may be configured using keyword arguments of `solve`.
+The ADI shifts may be configured using keyword arguments of `ADI`.
 
 ```julia
 shifts = Shifts.Projection(2)
-solve(::GALEProblem, ::ADI; shifts)
+solve(::GALEProblem, ADI(; shifts))
 
 adi_kwargs = (; shifts)
 solve(::GDREProblem, ::Ros1; adi_kwargs)

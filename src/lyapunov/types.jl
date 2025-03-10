@@ -16,6 +16,17 @@ struct GALEProblem{T}
 end
 
 abstract type LyapunovSolver end
-struct ADI <: LyapunovSolver end
+
+@kwdef struct ADI <: LyapunovSolver
+    maxiters::Int = 100
+    reltol::Union{Nothing,Real} = nothing
+    abstol::Union{Nothing,Real} = nothing
+    shifts::Shifts.Strategy = Shifts.Projection(2)
+    ignore_initial_guess::Bool = false # use zero if true
+    inner_alg::BlockLinearSolver = Backslash() # to solve BlockLinearProblem
+end
+
+ADI(inner_alg; kwargs...) = ADI(; inner_alg, kwargs...)
+
 struct BartelsStewart <: LyapunovSolver end
 struct Kronecker <: LyapunovSolver end

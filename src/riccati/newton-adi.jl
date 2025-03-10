@@ -134,12 +134,11 @@ function CommonSolve.solve(
         # Newton step:
         X_prev = X
         X = @timeit_debug "ADI" solve(
-            lyap, ADI();
-            maxiters=100,
+            lyap, ADI(; adi_kwargs...);
             observer,
             initial_guess,
             abstol=adi_abstol,
-            adi_kwargs...)
+        )
     end
 
     @timeit_debug "callbacks" observe_gare_done!(observer, i, X, res, res_norm)

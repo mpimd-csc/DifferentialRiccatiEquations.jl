@@ -44,7 +44,7 @@ function _solve(
         # Update X
         lyap = GALEProblem(E, F, R)
         initial_guess = adi_initprev ? X : nothing
-        X = @timeit_debug "ADI" solve(lyap, ADI(); observer, initial_guess, adi_kwargs...)
+        X = @timeit_debug "ADI" solve(lyap, ADI(; adi_kwargs...); observer, initial_guess)
         save_state && push!(Xs, X)
 
         # Update K

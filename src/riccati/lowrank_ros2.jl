@@ -51,7 +51,7 @@ function _solve(
         R1 = compress!(LDLᵀ{TL,TD}(G, S))
 
         lyap = GALEProblem(E, F, R1)
-        K1 = solve(lyap, ADI(); observer, adi_kwargs...)
+        K1 = solve(lyap, ADI(; adi_kwargs...); observer)
 
         # Solve Lyapunov equation of 2nd stage
         T₁, D₁ = K1
@@ -61,7 +61,7 @@ function _solve(
         R2 = LDLᵀ{TL,TD}(G₂, S₂)
 
         lyap = GALEProblem(E, F, R2)
-        K2 = solve(lyap, ADI(); observer, adi_kwargs...)
+        K2 = solve(lyap, ADI(; adi_kwargs...); observer)
 
         # Update X
         X = X + ((2-1/2γ)*τ)*K1 + (-τ/2)*K2
