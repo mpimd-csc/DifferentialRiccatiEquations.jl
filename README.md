@@ -172,6 +172,10 @@ julia> import DifferentialRiccatiEquations.Shifts
 help?> Shifts
 ```
 
+# Known issues
+
+* ADI on GPU breaks for complex-valued shifts
+
 # Acknowledgments
 
 I would like to thank the code reviewers:
