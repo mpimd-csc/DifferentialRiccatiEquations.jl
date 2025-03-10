@@ -157,7 +157,7 @@ solve(::GALEProblem, ADI(; shifts))
 
 adi_kwargs = (; shifts)
 solve(::GDREProblem, ::Ros1; adi_kwargs)
-solve(::GAREProblem, ::NewtonADI; adi_kwargs)
+solve(::GAREProblem, Newton(ADI(; shifts)))
 ```
 
 Pre-built shift strategies include:

@@ -91,7 +91,7 @@ end
 
 using DifferentialRiccatiEquations.Shifts
 
-@testset "NewtonADI()" begin
+@testset "Newton-ADI" begin
     G = LDLᵀ(B, I)
     Q = LDLᵀ(C', I)
     are = GAREProblem(E, A, G, Q)
@@ -100,7 +100,9 @@ using DifferentialRiccatiEquations.Shifts
         (shifts = Projection(2),), # leads to some complex shifts
         (shifts = Cyclic(Heuristic(10, 20, 20)), maxiters = 200),
     ]
-        X = solve(are, NewtonADI(); reltol, adi_kwargs, maxiters=10)
+        adi = ADI(; ignore_initial_guess=true, adi_kwargs...)
+        newton = Newton(adi; maxiters=10, reltol)
+        X = solve(are, newton)
         @test norm(residual(are, X)) < reltol * norm(Q)
     end
 end

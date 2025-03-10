@@ -8,7 +8,7 @@ using Compat: @something
 using Adapt: adapt
 using LinearAlgebra
 using MatrixEquations: lyapc, lyapcs!, utqu!
-using UnPack: @unpack
+using UnPack: @unpack, unpack
 using SparseArrays: SparseArrays,
                     SparseMatrixCSC,
                     AbstractSparseMatrix,
@@ -62,7 +62,7 @@ include("riccati/dense_ros4.jl")
 include("riccati/lowrank_ros1.jl")
 include("riccati/lowrank_ros2.jl")
 
-include("riccati/newton-adi.jl")
+include("riccati/newton.jl")
 
 function CommonSolve.solve(
     p::GDREProblem,
@@ -85,7 +85,7 @@ end
 export solve
 export residual
 export GDREProblem, Ros1, Ros2, Ros3, Ros4
-export GAREProblem, NewtonADI
+export GAREProblem, Newton
 export GALEProblem, ADI, BartelsStewart, Kronecker
 export LDLᵀ, concatenate!, compress!
 
