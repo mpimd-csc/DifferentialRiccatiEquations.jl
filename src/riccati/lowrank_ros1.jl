@@ -2,14 +2,12 @@
 
 function _solve(
     prob::GDREProblem{LDLᵀ{TL,TD}},
-    ::Ros1;
+    alg::Ros1;
     dt::Real,
     save_state::Bool,
-    adi_initprev::Bool=true,
-    adi_kwargs=NamedTuple(),
     observer,
 ) where {TL,TD}
-    @timeit_debug "callbacks" observe_gdre_start!(observer, prob, Ros1())
+    @timeit_debug "callbacks" observe_gdre_start!(observer, prob, alg)
 
     T = LDLᵀ{TL,TD}
 
@@ -30,6 +28,7 @@ function _solve(
 
     @timeit_debug "callbacks" observe_gdre_step!(observer, tstops[1], X, K)
 
+    inner_alg = @something(alg.inner_alg, ADI())
     for i in 2:len
         τ = tstops[i-1] - tstops[i]
 
@@ -43,8 +42,8 @@ function _solve(
 
         # Update X
         lyap = GALEProblem(E, F, R)
-        initial_guess = adi_initprev ? X : nothing
-        X = @timeit_debug "ADI" solve(lyap, ADI(; adi_kwargs...); observer, initial_guess)
+        initial_guess = X
+        X = @timeit_debug "$(typeof(inner_alg))" solve(lyap, inner_alg; observer, initial_guess)
         save_state && push!(Xs, X)
 
         # Update K

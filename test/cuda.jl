@@ -66,16 +66,12 @@ prob_xpu = GDREProblem(Ed, Ad, Bd, Cd, LDLᵀ(Ld, D), tspan)
 # Collect configurations:
 drop_complex(shifts) = filter(isreal, shifts) # FIXME: complex shifts should work just fine
 heuristic_shifts = (;
-    adi_initprev = false,
-    adi_kwargs = (;
-        shifts = Cyclic(Wrapped(drop_complex, Heuristic(4, 4, 4))),
-    )
+    ignore_initial_guess = true,
+    shifts = Cyclic(Wrapped(drop_complex, Heuristic(4, 4, 4))),
 )
 projection_shifts = (;
-    adi_initprev = false,
-    adi_kwargs = (;
-        shifts = Wrapped(heuristic ∘ drop_complex, Projection(2)),
-    ),
+    ignore_initial_guess = true,
+    shifts = Wrapped(heuristic ∘ drop_complex, Projection(2)),
 )
 
 @testset "DRE" begin
@@ -83,9 +79,10 @@ projection_shifts = (;
         ("Heuristic", heuristic_shifts),
         ("Projection", projection_shifts),
     )
-        sol_cpu = solve(prob_cpu, Ros1(); dt, config...)
-        sol_gpu = solve(prob_gpu, Ros1(); dt, config...)
-        sol_xpu = solve(prob_xpu, Ros1(); dt, config...)
+        alg = Ros1(ADI(; config...))
+        sol_cpu = solve(prob_cpu, alg; dt)
+        sol_gpu = solve(prob_gpu, alg; dt)
+        sol_xpu = solve(prob_xpu, alg; dt)
         @testset "i=$i" for (i, K) in enumerate(sol_cpu.K)
             @test Matrix(sol_gpu.K[i]) ≈ K
             @test Matrix(sol_xpu.K[i]) ≈ K

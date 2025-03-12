@@ -45,8 +45,12 @@ include("util/_hcat.jl")
 include("util/restrict.jl")
 
 abstract type Algorithm end
-struct Ros1 <: Algorithm end
-struct Ros2 <: Algorithm end
+@kwdef struct Ros1 <: Algorithm
+    inner_alg = nothing
+end
+@kwdef struct Ros2 <: Algorithm
+    inner_alg = nothing
+end
 struct Ros3 <: Algorithm end
 struct Ros4 <: Algorithm end
 

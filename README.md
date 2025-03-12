@@ -152,12 +152,10 @@ Note that there are currently no pre-built observers.
 The ADI shifts may be configured using keyword arguments of `ADI`.
 
 ```julia
-shifts = Shifts.Projection(2)
-solve(::GALEProblem, ADI(; shifts))
-
-adi_kwargs = (; shifts)
-solve(::GDREProblem, ::Ros1; adi_kwargs)
-solve(::GAREProblem, Newton(ADI(; shifts)))
+adi = ADI(; shifts = Shifts.Projection(2))
+solve(::GALEProblem, adi)
+solve(::GDREProblem, Ros1(adi))
+solve(::GAREProblem, Newton(adi))
 ```
 
 Pre-built shift strategies include:
