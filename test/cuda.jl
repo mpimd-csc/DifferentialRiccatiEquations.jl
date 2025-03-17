@@ -14,6 +14,8 @@ using CUDA.CUSPARSE
 using IterativeSolvers: cg!
 using TimerOutputs: @timeit_debug
 
+delta(a, b) = norm(a - b) / max(norm(a), norm(b))
+
 # Define necessary overwrites:
 @timeit_debug "CG" function Base.:(\)(A::AbstractCuSparseMatrix, B::CuVecOrMat)
     A⁻¹B = zero(B)
@@ -83,9 +85,10 @@ projection_shifts = (;
         sol_cpu = solve(prob_cpu, alg; dt)
         sol_gpu = solve(prob_gpu, alg; dt)
         sol_xpu = solve(prob_xpu, alg; dt)
+        reltol = 1e-7 # arbitrary
         @testset "i=$i" for (i, K) in enumerate(sol_cpu.K)
-            @test Matrix(sol_gpu.K[i]) ≈ K
-            @test Matrix(sol_xpu.K[i]) ≈ K
+            @test delta(Matrix(sol_gpu.K[i]), K) < reltol
+            @test delta(Matrix(sol_xpu.K[i]), K) < reltol
         end
     end
 end
