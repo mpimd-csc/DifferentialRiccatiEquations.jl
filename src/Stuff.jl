@@ -17,4 +17,7 @@ function orth(N::AbstractMatrix)
     F.U[:, ids]
 end
 
+# Only for testing:
+delta(a, b) = norm(a - b) / max(norm(a), norm(b))
+
 end

@@ -58,31 +58,8 @@ function Matrix(AUV::LowRankUpdate)
     A + inv(α) * (U * V)
 end
 
-@timeit_debug "Sherman-Morrison-Woodbury" function Base.:(\)(AUV::LowRankUpdate, B::AbstractVecOrMat)
-    A, α, U, V = AUV
-
-    n = size(B, 1)
-    k = size(B, 2)
-    A⁻¹_BU = @timeit_debug "solve (sparse)" begin
-        BU = similar(B, n, k + size(U, 2))
-        BU[:, 1:k] = B
-        BU[:, k+1:end] = U
-        A \ BU
-    end
-    A⁻¹B = if B isa AbstractVector
-        @assert k == 1
-        @view A⁻¹_BU[:, 1]
-    else
-        @view A⁻¹_BU[:, 1:k]
-    end
-    A⁻¹U = @view A⁻¹_BU[:, k+1:end]
-
-    @timeit_debug "solve (dense)" begin
-        S = α*I + V * A⁻¹U
-        S⁻¹VA⁻¹B = S \ (V * A⁻¹B)
-    end
-
-    X = A⁻¹B - A⁻¹U*S⁻¹VA⁻¹B
+function Base.:(\)(AUV::LowRankUpdate, B::AbstractVecOrMat)
+    X = solve(BlockLinearProblem(AUV, B), ShermanMorrisonWoodbury())
     return X
 end
 

@@ -13,4 +13,12 @@ struct BlockLinearProblem
 end
 
 abstract type BlockLinearSolver end
-struct Backslash <: BlockLinearSolver end
+struct Backslash <: BlockLinearSolver
+    factorize
+    Backslash(f=identity) = new(f)
+end
+struct ShermanMorrisonWoodbury <: BlockLinearSolver
+    ALG::BlockLinearSolver
+    alg::BlockLinearSolver
+    ShermanMorrisonWoodbury(ALG=Backslash(), alg=Backslash()) = new(ALG, alg)
+end

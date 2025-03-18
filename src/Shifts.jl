@@ -69,6 +69,9 @@ end
 module Shifts
 
 using Adapt: adapt
+using CommonSolve: CommonSolve, solve
+using ..Stuff
+import ..BlockLinearProblem, ..BlockLinearSolver, ..Backslash
 
 export Cyclic, Wrapped
 export Heuristic, Projection
@@ -112,7 +115,6 @@ Default: `popfirst!(shifts)`
 """
 take!(shifts) = popfirst!(shifts)
 
-using ..Stuff
 include("shifts/helpers.jl")
 include("shifts/heuristic.jl")
 include("shifts/projection.jl")

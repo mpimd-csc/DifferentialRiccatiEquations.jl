@@ -2,7 +2,7 @@
 
 module DifferentialRiccatiEquations
 
-using CommonSolve: CommonSolve, solve
+using CommonSolve: CommonSolve, init, solve, solve!
 using Compat: @something
 
 using Adapt: adapt
@@ -19,6 +19,8 @@ using TimerOutputs: @timeit_debug
 
 include("Stuff.jl")
 
+include("blocklinear/types.jl")
+
 include("Shifts.jl")
 include("Callbacks.jl")
 using .Callbacks
@@ -27,8 +29,8 @@ include("LDLt.jl")
 include("LowRankUpdate.jl")
 
 # Linear (block) vector solvers:
-include("blocklinear/types.jl")
 include("blocklinear/backslash.jl")
+include("blocklinear/sherman-morrison-woodbury.jl")
 
 # Linear matrix equations:
 include("lyapunov/types.jl")
@@ -91,6 +93,7 @@ export residual
 export GDREProblem, Ros1, Ros2, Ros3, Ros4
 export GAREProblem, Newton
 export GALEProblem, ADI, BartelsStewart, Kronecker
+export BlockLinearProblem, Backslash, ShermanMorrisonWoodbury
 export LDLᵀ, concatenate!, compress!
 
 end

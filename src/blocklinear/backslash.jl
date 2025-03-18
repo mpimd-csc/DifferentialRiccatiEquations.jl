@@ -2,9 +2,10 @@
 
 function CommonSolve.solve(
     prob::BlockLinearProblem,
-    ::Backslash;
+    alg::Backslash;
 )
     @unpack A, B = prob
-    X = A \ B
+    F = alg.factorize(A)
+    X = F \ B
     return X
 end

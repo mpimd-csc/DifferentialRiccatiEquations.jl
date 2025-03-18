@@ -4,10 +4,10 @@ using Test
 using DifferentialRiccatiEquations
 using LinearAlgebra, SparseArrays, UnPack
 
+using DifferentialRiccatiEquations.Stuff: delta
+
 n = 50
 g = 4
-
-delta(a, b) = norm(a - b) / max(norm(a), norm(b))
 
 function test_ale(E, A, g=g)
     n = size(E, 1)
