@@ -69,9 +69,9 @@ end
 module Shifts
 
 using Adapt: adapt
-using CommonSolve: CommonSolve, solve
+using CommonSolve: CommonSolve, solve!
 using ..Stuff
-import ..BlockLinearProblem, ..BlockLinearSolver, ..Backslash
+import ..BlockLinearProblem, ..BlockLinearSolver, ..Backslash, ..rhs
 
 export Cyclic, Wrapped
 export Heuristic, Projection

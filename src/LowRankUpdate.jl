@@ -70,10 +70,22 @@ function Base.:(+)(AUV::LowRankUpdate, E::AbstractMatrix)
 end
 
 function Base.:(*)(AUV::LowRankUpdate, X::AbstractVecOrMat)
+    Y = similar(X)
+    mul!(Y, AUV, X)
+end
+
+function LinearAlgebra.mul!(Y::AbstractVecOrMat, AUV::LowRankUpdate, X::AbstractVecOrMat)
     size(X, 1) == size(X, 2) && @warn(
         "Multiplying LowRankUpdate by square matrix; memory usage may increase severely",
         dim = size(X, 1),
     )
     A, α, U, V = AUV
-    A*X + inv(α)*(U*(V*X))
+    # A*X + inv(α)*(U*(V*X))
+    mul!(Y, A, X)
+    mul!(Y, U, V * X, inv(α), true)
+end
+
+function LinearAlgebra.factorize(AUV::LowRankUpdate)
+    A, α, U, V = AUV
+    LowRankUpdate(factorize(A), α, U, V)
 end

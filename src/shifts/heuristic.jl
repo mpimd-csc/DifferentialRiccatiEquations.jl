@@ -48,11 +48,15 @@ function init(strategy::Heuristic, prob)
     # Create a dense vector of ones on the same compute backend as A and E.
     b0 = arnoldi_b0(E)
 
+    solver = CommonSolve.init(BlockLinearProblem(E, similar(b0)), alg_E)
     R₊ = compute_ritz_values(b0, k₊, "E⁻¹A") do x
-        solve(BlockLinearProblem(E, A * x), alg_E)
+        mul!(rhs(solver), A, x)
+        solve!(solver)
     end
+    solver = CommonSolve.init(BlockLinearProblem(A, similar(b0)), alg_A)
     R₋ = compute_ritz_values(b0, k₋, "A⁻¹E") do x
-        solve(BlockLinearProblem(A, E * x), alg_A)
+        mul!(rhs(solver), E, x)
+        solve!(solver)
     end
     # TODO: R₊ and R₋ may not be disjoint. Remove duplicates, or replace values that differ
     # by an eps with their average.
@@ -65,7 +69,7 @@ end
     arnoldi_b0(E) -> b0
 
 Create a dense vector `b0` to start the Arnoldi process with.
-The resulting vector must support `E * b0`,
+The resulting vector must support `mul!(similar(b0), E, b0)`,
 i.e. the data should be located on the same compute device.
 """
 function arnoldi_b0(E)

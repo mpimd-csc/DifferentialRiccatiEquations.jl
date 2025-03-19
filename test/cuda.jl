@@ -71,7 +71,7 @@ prob_xpu = GDREProblem(Ed, Ad, Bd, Cd, LDLᵀ(Ld, D), tspan)
 
 # Collect configurations:
 drop_complex(shifts) = filter(isreal, shifts) # FIXME: complex shifts should work just fine
-inner_alg = ShermanMorrisonWoodbury(CG())
+inner_alg = ShermanMorrisonWoodbury(CG(), Backslash(identity))
 heuristic_shifts = (;
     ignore_initial_guess = true,
     shifts = Cyclic(Wrapped(drop_complex, Heuristic(4, 4, 4; alg_E=CG(), alg_A=inner_alg))),

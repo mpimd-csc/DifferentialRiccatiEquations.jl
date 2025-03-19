@@ -6,7 +6,9 @@ using CommonSolve: CommonSolve, init, solve, solve!
 using Compat: @something
 
 using Adapt: adapt
-using LinearAlgebra
+using LinearAlgebra: LinearAlgebra, ColumnNorm, Factorization, I, Symmetric,
+                     UniformScaling, diagm, eigen, factorize, mul!, norm, qr,
+                     rank, schur
 using MatrixEquations: lyapc, lyapcs!, utqu!
 using UnPack: @unpack, unpack
 using SparseArrays: SparseArrays,
