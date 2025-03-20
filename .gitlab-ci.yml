@@ -75,3 +75,13 @@ coverage:
       coverage_report:
         coverage_format: cobertura
         path: coverage/cobertura.xml
+
+benchmark:
+  image: julia:1.10
+  script:
+    - julia -e 'import Pkg; Pkg.add(["BenchmarkTools", "MORWiki", "PkgBenchmark"])'
+    - julia --project=@. -e 'import Pkg; Pkg.instantiate()'
+    - julia --project=@. -e 'import DifferentialRiccatiEquations as DRE; using PkgBenchmark; data = benchmarkpkg(DRE); export_markdown("report.md", data)'
+  artifacts:
+    paths:
+      - "report.md"
