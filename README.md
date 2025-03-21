@@ -149,15 +149,13 @@ Note that there are currently no pre-built observers.
 
 ## ADI shift parameter selection
 
-The ADI shifts may be configured using keyword arguments of `solve`.
+The ADI shifts may be configured using keyword arguments of `ADI`.
 
 ```julia
-shifts = Shifts.Projection(2)
-solve(::GALEProblem, ::ADI; shifts)
-
-adi_kwargs = (; shifts)
-solve(::GDREProblem, ::Ros1; adi_kwargs)
-solve(::GAREProblem, ::NewtonADI; adi_kwargs)
+adi = ADI(; shifts = Shifts.Projection(2))
+solve(::GALEProblem, adi)
+solve(::GDREProblem, Ros1(adi))
+solve(::GAREProblem, Newton(adi))
 ```
 
 Pre-built shift strategies include:
@@ -173,6 +171,10 @@ julia> import DifferentialRiccatiEquations.Shifts
 
 help?> Shifts
 ```
+
+# Known issues
+
+* ADI on GPU breaks for complex-valued shifts
 
 # Acknowledgments
 

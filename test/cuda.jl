@@ -7,15 +7,23 @@ using DifferentialRiccatiEquations
 const DRE = DifferentialRiccatiEquations
 using .DRE.Shifts: Cyclic, Heuristic
 using .DRE.Shifts: Wrapped, Projection, heuristic
+using .DRE.Stuff: delta
 
 using Test
 using LinearAlgebra, SparseArrays
 using CUDA.CUSPARSE
 using IterativeSolvers: cg!
 using TimerOutputs: @timeit_debug
+using UnPack: @unpack
 
 # Define necessary overwrites:
-@timeit_debug "CG" function Base.:(\)(A::AbstractCuSparseMatrix, B::CuVecOrMat)
+using .DRE: BlockLinearProblem, BlockLinearSolver
+import CommonSolve
+
+struct CG <: BlockLinearSolver end
+
+@timeit_debug "CG" function CommonSolve.solve(prob::BlockLinearProblem, ::CG)
+    @unpack A, B = prob
     A⁻¹B = zero(B)
     cg!(A⁻¹B, -A, -B)
     A⁻¹B
@@ -27,8 +35,6 @@ function DRE.orthf(L::CuMatrix)
     X = Diagonal(F.S) * F.Vt
     Q, X
 end
-
-LinearAlgebra.factorize(X::AbstractCuSparseMatrix) = X
 
 # Assemble system matrices:
 n = 10
@@ -65,17 +71,16 @@ prob_xpu = GDREProblem(Ed, Ad, Bd, Cd, LDLᵀ(Ld, D), tspan)
 
 # Collect configurations:
 drop_complex(shifts) = filter(isreal, shifts) # FIXME: complex shifts should work just fine
+inner_alg = ShermanMorrisonWoodbury(CG(), Backslash(identity))
 heuristic_shifts = (;
-    adi_initprev = false,
-    adi_kwargs = (;
-        shifts = Cyclic(Wrapped(drop_complex, Heuristic(4, 4, 4))),
-    )
+    ignore_initial_guess = true,
+    shifts = Cyclic(Wrapped(drop_complex, Heuristic(4, 4, 4; alg_E=CG(), alg_A=inner_alg))),
+    inner_alg,
 )
 projection_shifts = (;
-    adi_initprev = false,
-    adi_kwargs = (;
-        shifts = Wrapped(heuristic ∘ drop_complex, Projection(2)),
-    ),
+    ignore_initial_guess = true,
+    shifts = Wrapped(heuristic ∘ drop_complex, Projection(2)),
+    inner_alg,
 )
 
 @testset "DRE" begin
@@ -83,12 +88,14 @@ projection_shifts = (;
         ("Heuristic", heuristic_shifts),
         ("Projection", projection_shifts),
     )
-        sol_cpu = solve(prob_cpu, Ros1(); dt, config...)
-        sol_gpu = solve(prob_gpu, Ros1(); dt, config...)
-        sol_xpu = solve(prob_xpu, Ros1(); dt, config...)
+        alg = Ros1(ADI(; config...))
+        sol_cpu = solve(prob_cpu, alg; dt)
+        sol_gpu = solve(prob_gpu, alg; dt)
+        sol_xpu = solve(prob_xpu, alg; dt)
+        reltol = 1e-7 # arbitrary
         @testset "i=$i" for (i, K) in enumerate(sol_cpu.K)
-            @test Matrix(sol_gpu.K[i]) ≈ K
-            @test Matrix(sol_xpu.K[i]) ≈ K
+            @test delta(Matrix(sol_gpu.K[i]), K) < reltol
+            @test delta(Matrix(sol_xpu.K[i]), K) < reltol
         end
     end
 end

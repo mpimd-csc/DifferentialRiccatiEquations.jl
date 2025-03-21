@@ -2,13 +2,15 @@
 
 module DifferentialRiccatiEquations
 
-using CommonSolve: CommonSolve, solve
+using CommonSolve: CommonSolve, init, solve, solve!
 using Compat: @something
 
 using Adapt: adapt
-using LinearAlgebra
+using LinearAlgebra: LinearAlgebra, ColumnNorm, Factorization, I, Symmetric,
+                     UniformScaling, diagm, eigen, factorize, mul!, norm, qr,
+                     rank, schur
 using MatrixEquations: lyapc, lyapcs!, utqu!
-using UnPack: @unpack
+using UnPack: @unpack, unpack
 using SparseArrays: SparseArrays,
                     SparseMatrixCSC,
                     AbstractSparseMatrix,
@@ -19,18 +21,27 @@ using TimerOutputs: @timeit_debug
 
 include("Stuff.jl")
 
+include("blocklinear/types.jl")
+
 include("Shifts.jl")
 include("Callbacks.jl")
 using .Callbacks
 
 include("LDLt.jl")
 include("LowRankUpdate.jl")
+
+# Linear (block) vector solvers:
+include("blocklinear/backslash.jl")
+include("blocklinear/sherman-morrison-woodbury.jl")
+
+# Linear matrix equations:
 include("lyapunov/types.jl")
 include("lyapunov/adi.jl")
 include("lyapunov/bartels-stewart.jl")
 include("lyapunov/kronecker.jl")
 include("lyapunov/residual.jl")
 
+# Utilities:
 include("util/_zeros.jl")
 include("util/_diagm.jl")
 include("util/_dcat.jl")
@@ -38,11 +49,16 @@ include("util/_hcat.jl")
 include("util/restrict.jl")
 
 abstract type Algorithm end
-struct Ros1 <: Algorithm end
-struct Ros2 <: Algorithm end
+@kwdef struct Ros1 <: Algorithm
+    inner_alg = nothing
+end
+@kwdef struct Ros2 <: Algorithm
+    inner_alg = nothing
+end
 struct Ros3 <: Algorithm end
 struct Ros4 <: Algorithm end
 
+# Nonlinear matrix equations:
 include("riccati/types.jl")
 include("riccati/residual.jl")
 
@@ -54,7 +70,7 @@ include("riccati/dense_ros4.jl")
 include("riccati/lowrank_ros1.jl")
 include("riccati/lowrank_ros2.jl")
 
-include("riccati/newton-adi.jl")
+include("riccati/newton.jl")
 
 function CommonSolve.solve(
     p::GDREProblem,
@@ -77,8 +93,9 @@ end
 export solve
 export residual
 export GDREProblem, Ros1, Ros2, Ros3, Ros4
-export GAREProblem, NewtonADI
+export GAREProblem, Newton
 export GALEProblem, ADI, BartelsStewart, Kronecker
+export BlockLinearProblem, Backslash, ShermanMorrisonWoodbury
 export LDLᵀ, concatenate!, compress!
 
 end

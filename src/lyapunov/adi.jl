@@ -4,31 +4,32 @@ using Compat: @something
 
 function CommonSolve.solve(
     prob::GALEProblem{LDLᵀ{TL,TD}},
-    ::ADI;
+    alg::ADI;
     initial_guess::Union{Nothing,LDLᵀ{TL,TD}}=nothing,
-    maxiters=100,
-    reltol=size(prob.A, 1) * eps(),
-    abstol=reltol * norm(prob.C), # use same tolerance as if initial_guess=zero(C)
+    abstol=nothing,
     observer=nothing,
-    shifts::Shifts.Strategy=Shifts.Projection(2),
 ) where {TL,TD}
-    @timeit_debug "callbacks" observe_gale_start!(observer, prob, ADI())
-    initial_guess = @something initial_guess zero(prob.C)
-
+    @timeit_debug "callbacks" observe_gale_start!(observer, prob, alg)
     @unpack E, A, C = prob
+    reltol = @something(alg.reltol, size(A, 1) * eps())
+    abstol = @something(abstol, alg.abstol, reltol * norm(C)) # use same tolerance as if initial_guess=zero(C)
 
     # Compute initial residual
+    if alg.ignore_initial_guess || initial_guess === nothing
+        initial_guess = zero(C)
+    end
     X::LDLᵀ{TL,TD} = initial_guess::LDLᵀ{TL,TD}
     R::TL, T::TD = initial_residual = residual(prob, X)::LDLᵀ{TL,TD}
     initial_residual_norm = norm(initial_residual)
 
     # Initialize shifts
     @timeit_debug "shifts" begin
-        shifts = Shifts.init(shifts, prob)
+        shifts = Shifts.init(alg.shifts, prob)
         Shifts.update!(shifts, X, R)
     end
 
     # Perform actual ADI
+    @unpack inner_alg, maxiters = alg
     i = 1
     local V, V₁, V₂ # ADI increments
     local ρR # norm of residual
@@ -43,7 +44,10 @@ function CommonSolve.solve(
         if isreal(μ)
             μᵢ = real(μ)
             F = A' + (μᵢ*E)'
-            @timeit_debug "solve (real)" V = (F \ R)::TL
+            @timeit_debug "solve (real)" begin
+                inner_prob = BlockLinearProblem(F, R)
+                V = solve(inner_prob, inner_alg)::TL
+            end
 
             X += LDLᵀ(V, Y)
             R -= (2μᵢ * (E'*V))::TL
@@ -56,7 +60,10 @@ function CommonSolve.solve(
             @timeit_debug "callbacks" observe_gale_metadata!(observer, "ADI shifts", μ_next)
             μᵢ = μ
             F = A' + (conj(μᵢ)*E)'
-            @timeit_debug "solve (complex)" V = F \ R
+            @timeit_debug "solve (complex)" begin
+                inner_prob = BlockLinearProblem(F, R)
+                V = solve(inner_prob, inner_alg)
+            end
 
             δ = real(μᵢ) / imag(μᵢ)
             Vᵣ = real(V)

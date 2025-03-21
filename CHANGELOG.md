@@ -1,8 +1,14 @@
 # v0.5.x
 
+This release completely changes the user-facing API.
+Refer to the docstrings of the algorithm types for more details.
+
 * Breaking: Require Julia v1.10
 * Breaking: Remove `test/Rail371.mat`; use `SteelProfile(371)` from MORWiki.jl instead
-* Add rudimentary GPU support
+* Breaking: New default value `ADI(; ignore_initial_guess=false)` differs from v0.4 behavior
+* Breaking: Refactor `NewtonADI()` to `Newton(ADI())` (b3314ed882b1afcfbf719b9f955d117a531aae8b)
+* Add rudimentary GPU support (a55b117c469a8dc9006d774d76ab733119a3fdc8, ef9c8fe47378a98f3b0c7b2010478f99c92f9930)
+* Add optional argument to `Ros1` and `Ros2` to configure ALE solver, e.g., `Ros1(ADI(; maxiters=10))` (73a12bc02d441b3885ba204325b41f466c637c6a)
 * Fix `Shifts` helpers: allow, e.g., `Cyclic(Wrapped(real, Heuristic(3, 3, 3)))` (e64da1e1beeae478fe4a5bae2bd76d31bededf06)
 
 # v0.4.1

@@ -13,14 +13,13 @@ ENV["DATADEPS_ALWAYS_ACCEPT"] = 1
 
 # Newton method for GARE:
 suite = SUITE["newton"]["adi"]
-adi_kwargs = (;
+adi = ADI(;
     maxiters=200,
+    ignore_initial_guess=true,
     shifts=Cyclic(Heuristic(20, 30, 30)),
 )
-newton_kwargs = (;
+newton = Newton(adi;
     maxiters=20,
-    adi_initprev=false,
-    adi_kwargs,
 )
 for n in (1357, 5177)
     system = SteelProfile(n)
@@ -30,5 +29,5 @@ for n in (1357, 5177)
     G = LDLᵀ(1000B, I)
     Q = LDLᵀ(C', I)
     are = GAREProblem(E, A, G, Q)
-    suite[system] = @benchmarkable solve($are, NewtonADI(); $newton_kwargs...)
+    suite[system] = @benchmarkable solve($are, $newton)
 end

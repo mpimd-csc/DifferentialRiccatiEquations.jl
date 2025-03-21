@@ -6,9 +6,8 @@ function _solve(
     dt::Real,
     save_state::Bool,
     observer,
-    adi_kwargs=NamedTuple(),
 ) where {TL,TD}
-    observe_gdre_start!(observer, prob, Ros2())
+    observe_gdre_start!(observer, prob, alg)
 
     @unpack E, A, B, C, tspan = prob
     q = size(C, 1)
@@ -30,6 +29,7 @@ function _solve(
 
     observe_gdre_step!(observer, tstops[1], X, K)
 
+    inner_alg = @something(alg.inner_alg, ADI())
     for i in 2:len
         τ = tstops[i-1] - tstops[i]
 
@@ -51,7 +51,7 @@ function _solve(
         R1 = compress!(LDLᵀ{TL,TD}(G, S))
 
         lyap = GALEProblem(E, F, R1)
-        K1 = solve(lyap, ADI(); observer, adi_kwargs...)
+        K1 = solve(lyap, inner_alg; observer)
 
         # Solve Lyapunov equation of 2nd stage
         T₁, D₁ = K1
@@ -61,7 +61,7 @@ function _solve(
         R2 = LDLᵀ{TL,TD}(G₂, S₂)
 
         lyap = GALEProblem(E, F, R2)
-        K2 = solve(lyap, ADI(); observer, adi_kwargs...)
+        K2 = solve(lyap, inner_alg; observer)
 
         # Update X
         X = X + ((2-1/2γ)*τ)*K1 + (-τ/2)*K2

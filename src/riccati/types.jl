@@ -53,23 +53,22 @@ end
 abstract type AlgebraicRiccatiSolver end
 
 """
-    NewtonADI()
+    Newton(inner_alg; kwargs...)
+    Newton(; kwargs...)
 
 Kleinman-Newton method to solve algebraic Riccati equations.
-The algebraic Lyapunov equations arizing at every Newton steps are solved using the [`ADI`](@ref).
 
-    solve(prob::GAREProblem, NewtonADI(); kwargs...)
+    solve(prob::GAREProblem, Newton(; kwargs...); solve_kwargs...)
 
 Supported keyword arguments:
 
-* `reltol = size(prob.A, 1) * eps()`: relative Riccati residual tolerance
+* `inner_alg = ADI()`: algorithm to solve inner Lyapunov equations arizing at every Newton step
 * `maxiters = 5`: maximum number of Newton steps
+* `reltol = nothing`:
+  relative tolerance of Riccati residual; if set to `nothing`, equivalent to `size(prob.A, 1) * eps()`
+* `abstol = nothing`:
+  absolute tolerance of Riccati residual; if set to `nothing`, equivalent to `reltol * norm(prob.Q)` (residual of zero value)
 * `observer`: see [`Callbacks`](@ref)
-* `adi_initprev = false`: whether to use previous Newton iterate
-  as the initial guess for the [`ADI`](@ref).
-  If `false`, the default initial value of zero is used.
-* `adi_kwargs::NamedTuple`:
-  keyword arguments to pass to `solve(_, ::ADI; adi_kwargs...)`
 * `inexact = true`:
   whether to allow (more) inexact Lyapunov solutions
 * `inexact_forcing = quadratic_forcing`:
@@ -86,14 +85,6 @@ Supported keyword arguments:
   if the Riccati residual did not decrease sufficiently,
   see e.g. Benner et al. (2015).
 
-Default arguments to Lyapunov solver, which can all be overwritten by `adi_kwargs`:
-
-* `maxiters = 100`: maximum number of ADI iterations
-* `observer = observer`
-* `initial_guess`: see `adi_initprev` above
-* `reltol`: defaults a fraction of the Riccati tolerance, `reltol/10`
-* `abstol`: controlled by `inexact*` above, if `inexact = true`.
-
 References:
 
 * Dembo, Eisenstat, Steihaug: Inexact Newton Methods. 1982.
@@ -101,4 +92,15 @@ References:
 * Benner, Heinkenschloss, Saak, Weichelt: Inexact low-rank Newton-ADI method for large-scale algebraic Riccati equations. 2015.
   http://www.mpi-magdeburg.mpg.de/preprints/
 """
-struct NewtonADI <: AlgebraicRiccatiSolver end
+@kwdef struct Newton <: AlgebraicRiccatiSolver
+    maxiters::Int = 5
+    reltol::Union{Nothing,Real} = nothing
+    abstol::Union{Nothing,Real} = nothing
+    inner_alg = ADI()
+    inexact::Bool = true
+    inexact_hybrid::Bool = true
+    inexact_forcing = quadratic_forcing
+    linesearch::Bool = true
+end
+
+Newton(inner_alg; kwargs...) = Newton(; inner_alg, kwargs...)

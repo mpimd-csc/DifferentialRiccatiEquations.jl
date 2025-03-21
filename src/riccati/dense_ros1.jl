@@ -7,6 +7,9 @@ function _solve(
     save_state::Bool,
     observer,
 )
+    inner_alg = @something(alg.inner_alg, BartelsStewart())
+    inner_alg isa BartelsStewart || error("Not implemented")
+
     observe_gdre_start!(observer, prob, alg)
 
     @unpack E, A, B, C, tspan = prob

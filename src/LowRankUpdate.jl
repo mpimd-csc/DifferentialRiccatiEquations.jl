@@ -58,31 +58,8 @@ function Matrix(AUV::LowRankUpdate)
     A + inv(α) * (U * V)
 end
 
-@timeit_debug "Sherman-Morrison-Woodbury" function Base.:(\)(AUV::LowRankUpdate, B::AbstractVecOrMat)
-    A, α, U, V = AUV
-
-    n = size(B, 1)
-    k = size(B, 2)
-    A⁻¹_BU = @timeit_debug "solve (sparse)" begin
-        BU = similar(B, n, k + size(U, 2))
-        BU[:, 1:k] = B
-        BU[:, k+1:end] = U
-        A \ BU
-    end
-    A⁻¹B = if B isa AbstractVector
-        @assert k == 1
-        @view A⁻¹_BU[:, 1]
-    else
-        @view A⁻¹_BU[:, 1:k]
-    end
-    A⁻¹U = @view A⁻¹_BU[:, k+1:end]
-
-    @timeit_debug "solve (dense)" begin
-        S = α*I + V * A⁻¹U
-        S⁻¹VA⁻¹B = S \ (V * A⁻¹B)
-    end
-
-    X = A⁻¹B - A⁻¹U*S⁻¹VA⁻¹B
+function Base.:(\)(AUV::LowRankUpdate, B::AbstractVecOrMat)
+    X = solve(BlockLinearProblem(AUV, B), ShermanMorrisonWoodbury())
     return X
 end
 
@@ -93,10 +70,22 @@ function Base.:(+)(AUV::LowRankUpdate, E::AbstractMatrix)
 end
 
 function Base.:(*)(AUV::LowRankUpdate, X::AbstractVecOrMat)
+    Y = similar(X)
+    mul!(Y, AUV, X)
+end
+
+function LinearAlgebra.mul!(Y::AbstractVecOrMat, AUV::LowRankUpdate, X::AbstractVecOrMat)
     size(X, 1) == size(X, 2) && @warn(
         "Multiplying LowRankUpdate by square matrix; memory usage may increase severely",
         dim = size(X, 1),
     )
     A, α, U, V = AUV
-    A*X + inv(α)*(U*(V*X))
+    # A*X + inv(α)*(U*(V*X))
+    mul!(Y, A, X)
+    mul!(Y, U, V * X, inv(α), true)
+end
+
+function LinearAlgebra.factorize(AUV::LowRankUpdate)
+    A, α, U, V = AUV
+    LowRankUpdate(factorize(A), α, U, V)
 end
