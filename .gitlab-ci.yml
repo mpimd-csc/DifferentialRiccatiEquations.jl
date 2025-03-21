@@ -1,5 +1,18 @@
+.default_cache: &default_cache
+  key: ${CI_RUNNER_ID}-${CI_JOB_IMAGE}
+  paths:
+    - ${JULIA_DEPOT_PATH}/artifacts
+    - ${JULIA_DEPOT_PATH}/compiled
+    - ${JULIA_DEPOT_PATH}/logs
+    - ${JULIA_DEPOT_PATH}/packages
+    - ${JULIA_DEPOT_PATH}/scratchspaces
+
 default:
   interruptible: true
+  cache: *default_cache
+
+variables:
+  JULIA_DEPOT_PATH: ${CI_PROJECT_DIR}/.julia
 
 # Prevent duplicate pipelines
 # https://docs.gitlab.com/ee/ci/yaml/workflow.html#switch-between-branch-pipelines-and-merge-request-pipelines
@@ -12,11 +25,8 @@ workflow:
 
 .script:
   script:
-    - |
-      julia --project=@. -e "
-        using Pkg
-        Pkg.build()
-        Pkg.test(coverage=${COVERAGE-false})"
+    - julia --project=@. -e "using Pkg; Pkg.build(); Pkg.test(coverage=${COVERAGE-false})"
+    - find ${JULIA_DEPOT_PATH} -name '*.cov' -delete
 
 .rules:
   rules:
@@ -44,6 +54,11 @@ test:
 
 benchmark:
   image: julia:1.10
+  cache:
+    - *default_cache
+    - key: ${CI_RUNNER_ID}-tune
+      paths:
+        - benchmark/tune.json
   script:
     - julia -e 'import Pkg; Pkg.add(["BenchmarkTools", "MORWiki", "PkgBenchmark"])'
     - julia --project=@. -e 'import Pkg; Pkg.instantiate()'
