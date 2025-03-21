@@ -1,3 +1,7 @@
+# v0.4.2
+
+* Add PkgBenchmark-compatible benchmarks
+
 # v0.4.1
 
 * Fix ADI for ALEs with non-symmetric matrices (e62cb82b2c3c3dbf130b2918e2f0a43ed7616133)
