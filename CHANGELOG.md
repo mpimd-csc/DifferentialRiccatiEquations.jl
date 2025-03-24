@@ -10,6 +10,7 @@ Refer to the docstrings of the algorithm types for more details.
 * Add rudimentary GPU support (a55b117c469a8dc9006d774d76ab733119a3fdc8, ef9c8fe47378a98f3b0c7b2010478f99c92f9930)
 * Add optional argument to `Ros1` and `Ros2` to configure ALE solver, e.g., `Ros1(ADI(; maxiters=10))` (73a12bc02d441b3885ba204325b41f466c637c6a)
 * Fix `Shifts` helpers: allow, e.g., `Cyclic(Wrapped(real, Heuristic(3, 3, 3)))` (e64da1e1beeae478fe4a5bae2bd76d31bededf06)
+* `residual(prob, val)` now allocates in all cases, making its return value safe to modify in-place by the caller
 
 # v0.4.1
 

@@ -18,7 +18,7 @@ using Compat: @something
     h = size(Cᵀ, 2)
     zₖ = size(L, 2)
     dim = h + 2zₖ
-    dim == h && return Q
+    dim == h && return deepcopy(Q)
     @debug "Assembling ARE residual" h zₖ
 
     # Compute optional inputs

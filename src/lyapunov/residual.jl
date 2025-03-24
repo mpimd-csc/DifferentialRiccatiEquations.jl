@@ -11,7 +11,7 @@
     n_G = size(G, 2)
     n_0 = size(L, 2)
     dim = n_G + 2n_0
-    dim == n_G && return C
+    dim == n_G && return deepcopy(C)
 
     R::TL = _hcat(TL, G, E'L, A'L)
     T::TD = _zeros(TD, dim, dim)
