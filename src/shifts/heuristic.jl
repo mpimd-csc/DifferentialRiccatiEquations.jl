@@ -126,9 +126,5 @@ function compute_ritz_values(A, b0::AbstractVector, k::Int, desc::String)
 
     ritz = eigvals(@view H[1:k, 1:k])
 
-    isstable(v) = real(v) < 0
-    all(isstable, ritz) && return ritz
-
-    @warn "Discarding unstable Ritz values of $desc"
-    filter!(isstable, ritz)
+    stabilize_ritz_values!(ritz, desc)
 end

@@ -65,11 +65,10 @@ function take_many!(it::ProjectionShiftIterator)
     Ẽ = adapt(T, Ẽ)
     Ã = adapt(T, Ã)
     λ = eigvals(Ã, Ẽ)
-    # TODO: flip values at imaginary axes instead
-    λ₋ = filter(l -> real(l) < 0, λ)
 
-    safe_sort!(λ₋)
+    stabilize_ritz_values!(λ, "(A, E)")
+    safe_sort!(λ)
 
-    return λ₋
+    return λ
 end
 
