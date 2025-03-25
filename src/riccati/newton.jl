@@ -82,6 +82,7 @@ function CommonSolve.solve(
             end
         end
         @timeit_debug "callbacks" observe_gare_step!(observer, i, X, res, res_norm)
+        @debug "Newton" i reltol abstol residual=res_norm rank(X)
 
         res_norm <= abstol && break
         if i >= maxiters
