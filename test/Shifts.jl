@@ -8,6 +8,7 @@ using DifferentialRiccatiEquations
 using DifferentialRiccatiEquations: Shifts
 using .Shifts
 using .Shifts: take!, init
+using .Shifts: flip, isstable, stabilize_ritz_values!
 
 penzl(p) = [-1 p; -p -1]
 modified_penzl(v) = abs(real(v)) * penzl(imag(v) / real(v))
@@ -17,6 +18,54 @@ E = sparse(1.0I(n))
 A = spzeros(n, n)
 A[1:2, 1:2] = penzl(1)
 A[3:n, 3:n] .= -1/2
+
+@testset "helpers" begin
+    @test !isstable(0)
+    @test !isstable(1im)
+    @test isstable(-1)
+    @test isstable(-1 - 2im)
+    @test flip(1) === -1
+    @test flip(1.0) === -1.0
+    @test flip(2 + 1im) === -2 + 1im
+    @testset "stabilize_ritz_values!(::Vector{$T}, ::String)" for T in (Float64, ComplexF64)
+        @testset "all unstable" begin
+            v = rand(n)
+            if T <: Complex
+                v += rand(n) * im
+            end
+            w = copy(v)
+            @test all(!isstable, v)
+            @test_warn "All Ritz values of test are unstable" stabilize_ritz_values!(v, "test")
+            @test length(v) == n
+            @test real(v + w) == zeros(n)
+            @test all(isstable, v)
+            @test v isa Vector{T}
+        end
+        @testset "some unstable" begin
+            v = rand(n)
+            if T <: Complex
+                v += rand(n) * im
+            end
+            v[1] = -v[1]
+            @test any(!isstable, v)
+            @test_warn "Discarding unstable Ritz values of test" stabilize_ritz_values!(v, "test")
+            @test length(v) == 1
+            @test all(isstable, v)
+            @test v isa Vector{T}
+        end
+        @testset "none unstable" begin
+            v = -rand(n)
+            if T <: Complex
+                v += rand(n) * im
+            end
+            @test all(isstable, v)
+            @test_nowarn stabilize_ritz_values!(v, "test")
+            @test length(v) == n
+            @test all(isstable, v)
+            @test v isa Vector{T}
+        end
+    end
+end
 
 # Internally, the Ritz values are computed with a naive Arnoldi implementation,
 # which is not very accurate. Therefore, the following testset is mostly broken.

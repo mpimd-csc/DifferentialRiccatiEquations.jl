@@ -107,3 +107,20 @@ end
 Ensure that complex conjugated values are located adjacent to one another.
 """
 safe_sort!(shifts) = sort!(shifts; by = v -> (real(v), abs(imag(v))))
+
+isstable(v) = real(v) < 0
+
+flip(x::Real) = -x
+flip(x::Complex) = complex(-real(x), imag(x))
+
+function stabilize_ritz_values!(λ, desc)
+    n = count(!isstable, λ)
+    if 0 < n < length(λ)
+        @warn "Discarding unstable Ritz values of $desc"
+        filter!(isstable, λ)
+    elseif n == length(λ)
+        @warn "All Ritz values of $desc are unstable; flipping along imaginary axis"
+        map!(flip, λ, λ)
+    end
+    return λ
+end
