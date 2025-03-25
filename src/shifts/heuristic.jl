@@ -105,22 +105,23 @@ function compute_ritz_values(A, b0::AbstractVector, k::Int, desc::String)
     H = zeros(k + 1, k)
     V = similar(b0, n, k + 1)
     V[:, 1] .= (1.0 / norm(b0)) * b0
+    T = eltype(V)
 
     # Arnoldi
     for j in 1:k
-        w = A(V[:, j])
+        w = A(view(V, :, j))
 
         # Repeated modified Gram-Schmidt (MGS)
         for _ = 1:2
             for i = 1:j
-                g = view(V, :, i)' * w
+                g = dot(view(V, :, i), w)
                 H[i, j] += g
-                w -= V[:, i] * g
+                mul!(w, view(V, :, i), g, -one(T), one(T)) # w -= view(V, :, i) * g
             end
         end
 
         H[j+1, j] = beta = norm(w)
-        V[:, j+1] .= (1.0 / beta) * w
+        mul!(view(V, :, j+1), 1 / beta, w) # V[:, j+1] = (1.0 / beta) * w
     end
 
     ritz = eigvals(@view H[1:k, 1:k])

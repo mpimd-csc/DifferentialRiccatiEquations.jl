@@ -16,7 +16,8 @@ res0 = norm(C)
     ("GALEProblem", GALEProblem(E, A, C)),
     ("GAREProblem", GAREProblem(E, A, Q, C)),
 )
-    @test residual(prob, zero(C)) === C # does not allocate
+    @test residual(prob, zero(C)) == C
+    @test residual(prob, zero(C)) !== C # must be safe to modify in-place
     @test norm(residual(prob, zero(C))) ≈ res0
     @test norm(residual(prob, zeros(n, n))) ≈ res0
 end

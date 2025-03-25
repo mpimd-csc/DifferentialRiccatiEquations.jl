@@ -31,6 +31,8 @@ struct LDLᵀ{TL,TD}
     LDLᵀ{TL,TD}(L::Vector{TL}, D::Vector{TD}) where {TL, TD} = new{TL,TD}(L, D)
 end
 
+Base.:(==)(X::LDLᵀ, Y::LDLᵀ) = X.Ls == Y.Ls && X.Ds == Y.Ds
+
 Base.eltype(::Type{LDLᵀ{TL,TD}}) where {TL,TD} = promote_type(eltype(TL), eltype(TD))
 
 # Mainly for testing

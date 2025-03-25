@@ -50,7 +50,7 @@ function CommonSolve.solve(
             end
 
             X += LDLᵀ(V, Y)
-            R -= (2μᵢ * (E'*V))::TL
+            mul!(R, E', V, -2μᵢ, true) # R -= (2μᵢ * (E'*V))::TL
             i += 1
 
             @timeit_debug "shifts" Shifts.update!(shifts, X, R, V)
@@ -72,7 +72,7 @@ function CommonSolve.solve(
             V₁ = √2 * V′
             V₂ = sqrt(2δ^2 + 2) * Vᵢ
             X = X + LDLᵀ(V₁, Y) + LDLᵀ(V₂, Y)
-            R -= (4real(μ) * (E'*V′))::TL
+            mul!(R, E', V′, -4real(μ), true) # R -= (4real(μ) * (E'*V′))::TL
             i += 2
 
             @timeit_debug "shifts" Shifts.update!(shifts, X, R, V₁, V₂)
