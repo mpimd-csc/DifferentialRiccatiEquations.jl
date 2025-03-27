@@ -31,6 +31,7 @@ function CommonSolve.solve(
     # Perform actual ADI
     @unpack inner_alg, maxiters = alg
     i = 1
+    last_compression = 0
     local V, V₁, V₂ # ADI increments
     local ρR # norm of residual
 
@@ -52,6 +53,7 @@ function CommonSolve.solve(
             X += LDLᵀ(V, Y)
             mul!(R, E', V, -2μᵢ, true) # R -= (2μᵢ * (E'*V))::TL
             i += 1
+            last_compression += 1
 
             @timeit_debug "shifts" Shifts.update!(shifts, X, R, V)
         else
@@ -74,14 +76,20 @@ function CommonSolve.solve(
             X = X + LDLᵀ(V₁, Y) + LDLᵀ(V₂, Y)
             mul!(R, E', V′, -4real(μ), true) # R -= (4real(μ) * (E'*V′))::TL
             i += 2
+            last_compression += 2
 
             @timeit_debug "shifts" Shifts.update!(shifts, X, R, V₁, V₂)
+        end
+
+        if last_compression >= alg.compression_interval
+            compress!(X)
+            last_compression = 0
         end
 
         residual = LDLᵀ(R, T)
         ρR = norm(residual)
         @timeit_debug "callbacks" observe_gale_step!(observer, i-1, X, residual, ρR)
-        @debug "ADI" i rank(X) residual=ρR
+        @debug "ADI" i reltol abstol residual=ρR rank(X) compressed=(last_compression==0)
         ρR <= abstol && break
         if i > maxiters
             @timeit_debug "callbacks" observe_gale_failed!(observer)
