@@ -41,7 +41,7 @@ using Compat: @something
     T[b2, b3] .= T[b3, b2] .= D
     T[b3, b3] .= -DLᵀGLD
 
-    LDLᵀ(R, T)
+    lowrank(R, T)
 end
 
 @timeit_debug "residual(::GAREProblem, ::Matrix)" function residual(

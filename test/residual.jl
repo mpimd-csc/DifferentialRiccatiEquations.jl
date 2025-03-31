@@ -7,8 +7,8 @@ using LinearAlgebra, SparseArrays
 n = 20
 E = sprand(n, n, 1/n)
 A = sprand(n, n, 1/n)
-C = LDLᵀ(rand(n, 4), rand(4, 4)) # constant term
-Q = LDLᵀ(rand(n, 3), rand(3, 3)) # quadratic term
+C = lowrank(rand(n, 4), rand(4, 4)) # constant term
+Q = lowrank(rand(n, 3), rand(3, 3)) # quadratic term
 
 res0 = norm(C)
 

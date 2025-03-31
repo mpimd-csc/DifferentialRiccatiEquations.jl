@@ -96,6 +96,6 @@ export GDREProblem, Ros1, Ros2, Ros3, Ros4
 export GAREProblem, Newton
 export GALEProblem, ADI, BartelsStewart, Kronecker
 export BlockLinearProblem, Backslash, ShermanMorrisonWoodbury
-export LDLᵀ, concatenate!, compress!
+export lowrank, concatenate!, compress!
 
 end

@@ -19,8 +19,11 @@ function CommonSolve.solve(
     reltol = @something(alg.reltol, size(A, 1) * eps())
     abstol = @something(alg.abstol, reltol * res_norm)
 
+    # This is ugly:
     n = size(A, 2)
-    X = LDLᵀ{TL,TD}(zeros(n, 0), zeros(0, 0)) # this is ugly
+    L = convert(TL, zeros(n, 0))::TL
+    D = convert(TD, zeros(0, 0))::TD
+    X = lowrank(L, D)
 
     i = 0
     local X_prev
@@ -101,7 +104,7 @@ function CommonSolve.solve(
         EᵀXB = EᵀL * (BᵀLD)'
         G::TL = _hcat(TL, Cᵀ, EᵀXB)
         S::TD = _dcat(TD, I(q), I(m))
-        RHS = LDLᵀ(G, S)
+        RHS = lowrank(G, S)
 
         # Lyapunov setup
         lyap = GALEProblem(E, F, RHS)

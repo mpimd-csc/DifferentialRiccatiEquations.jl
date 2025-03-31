@@ -22,7 +22,7 @@
     T[i3, i2] = D
     T[i2, i3] = D
 
-    R̃ = LDLᵀ(R, T)::LDLᵀ{TL,TD}
+    R̃ = lowrank(R, T)::LDLᵀ{TL,TD}
     compress!(R̃) # unconditionally
 end
 

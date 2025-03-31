@@ -114,7 +114,7 @@ using SparseArrays
 q = size(C, 1)
 L = E \ C'
 D = sparse(0.01I(q))
-X0_lr = LDLᵀ(L, D)
+X0_lr = lowrank(L, D)
 
 Matrix(X0_lr) ≈ X0
 ```

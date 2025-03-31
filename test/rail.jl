@@ -21,12 +21,12 @@ tspan = (4500., 4400.) # backwards in time
 q = size(C, 1)
 L = E \ C'
 D = Matrix(0.01I(q))
-X0s = LDLᵀ(L, D)
+X0s = lowrank(L, D)
 sprob1 = GDREProblem(E, A, B, C, X0s, tspan)
 
 # Low-Rank Setup With Sparse D
 Ds = sparse(0.01I(q))
-X0ss = LDLᵀ(L, Ds)
+X0ss = lowrank(L, Ds)
 sprob2 = GDREProblem(E, A, B, C, X0ss, tspan)
 
 # Dense Setup
@@ -92,8 +92,8 @@ end
 using DifferentialRiccatiEquations.Shifts
 
 @testset "Newton-ADI" begin
-    G = LDLᵀ(B, I)
-    Q = LDLᵀ(C', I)
+    G = lowrank(B, I)
+    Q = lowrank(C', I)
     are = GAREProblem(E, A, G, Q)
     reltol = 1e-10
     @testset "$(adi_kwargs.shifts)" for adi_kwargs in [

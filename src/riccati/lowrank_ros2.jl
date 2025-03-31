@@ -48,7 +48,7 @@ function _solve(
         S[b2, b3] = D
         S[b3, b2] = D
         S[b3, b3] = - (BᵀLD)' * BᵀLD
-        R1 = compress!(LDLᵀ{TL,TD}(G, S))
+        R1 = compress!(lowrank(G, S))
 
         lyap = GALEProblem(E, F, R1)
         K1 = solve(lyap, inner_alg; observer)
@@ -58,7 +58,7 @@ function _solve(
         BᵀT₁D₁ = (B'*T₁)*D₁
         G₂::TL = E'T₁
         S₂::TD = (τ^2 * BᵀT₁D₁)' * BᵀT₁D₁ + (2-1/γ) * D₁
-        R2 = LDLᵀ{TL,TD}(G₂, S₂)
+        R2 = lowrank(G₂, S₂)
 
         lyap = GALEProblem(E, F, R2)
         K2 = solve(lyap, inner_alg; observer)

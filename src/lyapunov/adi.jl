@@ -50,7 +50,7 @@ function CommonSolve.solve(
                 V = solve(inner_prob, inner_alg)::TL
             end
 
-            X += LDLᵀ(V, Y)
+            X += lowrank(V, Y)
             mul!(R, E', V, -2μᵢ, true) # R -= (2μᵢ * (E'*V))::TL
             i += 1
             last_compression += 1
@@ -73,7 +73,7 @@ function CommonSolve.solve(
             V′ = Vᵣ + δ*Vᵢ
             V₁ = √2 * V′
             V₂ = sqrt(2δ^2 + 2) * Vᵢ
-            X = X + LDLᵀ(V₁, Y) + LDLᵀ(V₂, Y)
+            X = X + lowrank(V₁, Y) + lowrank(V₂, Y)
             mul!(R, E', V′, -4real(μ), true) # R -= (4real(μ) * (E'*V′))::TL
             i += 2
             last_compression += 2
@@ -86,7 +86,7 @@ function CommonSolve.solve(
             last_compression = 0
         end
 
-        residual = LDLᵀ(R, T)
+        residual = lowrank(R, T)
         ρR = norm(residual)
         @timeit_debug "callbacks" observe_gale_step!(observer, i-1, X, residual, ρR)
         @debug "ADI" i reltol abstol residual=ρR rank(X) compressed=(last_compression==0)
@@ -105,7 +105,7 @@ function CommonSolve.solve(
 
     iters = i - 1 # actual number of ADI steps performed
     @debug "ADI done" i=iters maxiters residual=ρR abstol rank(X) rank_initial_guess=rank(initial_guess) rank_rhs=rank(C) rank_residual=size(R)
-    @timeit_debug "callbacks" observe_gale_done!(observer, iters, X, LDLᵀ(R, T), ρR)
+    @timeit_debug "callbacks" observe_gale_done!(observer, iters, X, lowrank(R, T), ρR)
 
     return X
 end

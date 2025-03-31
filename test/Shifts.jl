@@ -173,7 +173,7 @@ end
     @test isempty(shifts.buffer)
 
     # Pass some initial data:
-    Shifts.update!(shifts, LDLᵀ(zeros(n, 0), zeros(0, 0)), ones(n))
+    Shifts.update!(shifts, lowrank(zeros(n, 0), zeros(0, 0)), ones(n))
     @test isempty(shifts.buffer)
 
     # As the initial residual was rank one,

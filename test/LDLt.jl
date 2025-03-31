@@ -9,7 +9,7 @@ k = 2
 @testset "Conversions" begin
     L = randn(n, k)
     D = rand(k, k)
-    X = LDLᵀ(L, D)
+    X = lowrank(L, D)
     M = Matrix(X)
 
     @test M isa Matrix{Float64}
@@ -26,7 +26,7 @@ function sample(n, k)
     end
     λ = rand(k) .+ 0.1
     D = diagm(λ)
-    return LDLᵀ(L, D)
+    return lowrank(L, D)
 end
 
 @testset "Rank k" begin
@@ -49,7 +49,7 @@ end
 end
 
 @testset "Rank 0" begin
-    X = LDLᵀ(randn(n, 1), zeros(1, 1))
+    X = lowrank(randn(n, 1), zeros(1, 1))
     @test rank(X) == 1 # not the actual rank
     compress!(X)
     @test_broken rank(X) == 0

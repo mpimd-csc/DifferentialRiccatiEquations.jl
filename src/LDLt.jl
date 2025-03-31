@@ -3,8 +3,7 @@
 using Compat: allequal
 
 """
-    LDLᵀ{TL,TD}(L::TL, D::TD)
-    LDLᵀ{TL,TD}(Ls::Vector{TL}, Ds::Vector{TD})
+    lowrank(L, D)::LDLᵀ
 
 A lazy representation of `L * D * L'` that supports the following functions:
 
@@ -22,13 +21,11 @@ This calls [`compress!`](@ref), if necessary.
 For convenience, the structure might be converted to a matrix via `Matrix`.
 It is recommended to use this only for testing.
 """
+lowrank(L, D=I) = LDLᵀ{typeof(L), typeof(D)}([L], [D])
+
 struct LDLᵀ{TL,TD}
     Ls::Vector{TL}
     Ds::Vector{TD}
-
-    LDLᵀ(L::TL, D::TD) where {TL, TD} = new{TL,TD}([L], [D])
-    LDLᵀ{TL,TD}(L::TL, D::TD) where {TL, TD} = new{TL,TD}([L], [D])
-    LDLᵀ{TL,TD}(L::Vector{TL}, D::Vector{TD}) where {TL, TD} = new{TL,TD}(L, D)
 end
 
 Base.:(==)(X::LDLᵀ, Y::LDLᵀ) = X.Ls == Y.Ls && X.Ds == Y.Ds
@@ -89,10 +86,10 @@ function Base.zero(X::LDLᵀ{TL,TD}) where {TL,TD}
     n = size(X, 1)
     L = _zeros(TL, n, 0)
     D = _zeros(TD, 0, 0)
-    LDLᵀ{TL,TD}(L, D)
+    lowrank(L, D)::typeof(X)
 end
 
-function Base.:(+)(X1::LDLᵀ{TL,TD}, X2::LDLᵀ) where {TL,TD}
+function Base.:(+)(X1::LDLᵀ, X2::LDLᵀ)
     if (n1 = size(X1, 1)) != (n2 = size(X2, 1))
         throw(DimensionMismatch("outer dimensions must match, got $n1 and $n2 instead"))
     end
@@ -100,17 +97,16 @@ function Base.:(+)(X1::LDLᵀ{TL,TD}, X2::LDLᵀ) where {TL,TD}
     Ds = copy(X1.Ds)
     append!(Ls, X2.Ls)
     append!(Ds, X2.Ds)
-    X = LDLᵀ{TL,TD}(Ls, Ds)
+    X = typeof(X1)(Ls, Ds)
     return X
 end
 
-Base.:(-)(X::LDLᵀ{TL,TD}) where {TL,TD} = LDLᵀ{TL,TD}(X.Ls, -X.Ds)
+Base.:(-)(X::LDLᵀ) = typeof(X)(X.Ls, -X.Ds)
 Base.:(-)(X::LDLᵀ, Y::LDLᵀ) = X + (-Y)
 
 # TODO: Make this more efficient by storing the scalar as a field of LDLᵀ.
 function Base.:(*)(α::Real, X::LDLᵀ)
-    L, D = X
-    LDLᵀ(L, α*D)
+    typeof(X)(X.Ls, α * X.Ds)
 end
 
 """

@@ -38,7 +38,7 @@ function _solve(
         # Right-hand side:
         G::TL = _hcat(TL, C', E'L)
         S::TD = _dcat(TD, I(q), (BᵀLD)' * BᵀLD + D/τ)
-        R::T = compress!(LDLᵀ(G, S))
+        R::T = compress!(lowrank(G, S))
 
         # Update X
         lyap = GALEProblem(E, F, R)
