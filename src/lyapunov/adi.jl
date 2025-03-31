@@ -98,7 +98,10 @@ function CommonSolve.solve(
         end
     end
 
-    _, D = X # run compression, if necessary
+    # Run compression, if necessary:
+    if last_compression > 0
+        compress!(X)
+    end
 
     iters = i - 1 # actual number of ADI steps performed
     @debug "ADI done" i=iters maxiters residual=ρR abstol rank(X) rank_initial_guess=rank(initial_guess) rank_rhs=rank(C) rank_residual=size(R)
