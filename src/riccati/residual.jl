@@ -12,9 +12,9 @@ using Compat: @something
     DLᵀGLD = nothing,
 )
     @unpack E, A, Q, G = prob
-    Cᵀ, _ = Q
-    B, _ = G
-    L, D = X
+    gamma, Cᵀ, _ = Q
+    beta, B, _ = G
+    alpha, L, D = X
     h = size(Cᵀ, 2)
     zₖ = size(L, 2)
     dim = h + 2zₖ
@@ -25,7 +25,10 @@ using Compat: @something
     AᵀL = @something(AᵀL, A'L)
     EᵀL = @something(EᵀL, E'L)
     if DLᵀGLD === nothing
-        BᵀLD = @something(BᵀLD, (B'L)*D)
+        if BᵀLD === nothing
+            BᵀLD = (B'L)*D
+            alpha * beta == 1 || rmul!(BᵀLD, alpha * beta)
+        end
         DLᵀGLD = (BᵀLD)'BᵀLD
     end
 
@@ -36,9 +39,9 @@ using Compat: @something
     b2 = h+1:h+zₖ
     b3 = b2 .+ zₖ
     for i in b1
-        T[i, i] = 1
+        T[i, i] = gamma
     end
-    T[b2, b3] .= T[b3, b2] .= D
+    T[b2, b3] .= T[b3, b2] .= alpha * D
     T[b3, b3] .= -DLᵀGLD
 
     lowrank(R, T)
@@ -50,10 +53,10 @@ end
 )
 
     @unpack E, A, G, Q = prob
-    B, D = G
+    alpha, B, D = G
     BᵀXE = (B' * X) * E
     res = Matrix(Q)
     res += A' * X * E
     res += E' * X * A
-    res += (BᵀXE)' * D * BᵀXE
+    res += (BᵀXE)' * (alpha * D) * BᵀXE
 end

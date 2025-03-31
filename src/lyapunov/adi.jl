@@ -3,12 +3,12 @@
 using Compat: @something
 
 function CommonSolve.solve(
-    prob::GALEProblem{LDLᵀ{TL,TD}},
+    prob::GALEProblem{TX},
     alg::ADI;
-    initial_guess::Union{Nothing,LDLᵀ{TL,TD}}=nothing,
+    initial_guess::Union{Nothing,TX}=nothing,
     abstol=nothing,
     observer=nothing,
-) where {TL,TD}
+) where {TX <: LDLᵀ}
     @timeit_debug "callbacks" observe_gale_start!(observer, prob, alg)
     @unpack E, A, C = prob
     reltol = @something(alg.reltol, size(A, 1) * eps())
@@ -18,8 +18,11 @@ function CommonSolve.solve(
     if alg.ignore_initial_guess || initial_guess === nothing
         initial_guess = zero(C)
     end
-    X::LDLᵀ{TL,TD} = initial_guess::LDLᵀ{TL,TD}
-    R::TL, T::TD = initial_residual = residual(prob, X)::LDLᵀ{TL,TD}
+    TL = eltype(C.Ls)
+    TD = eltype(C.Ds)
+    X::TX = initial_guess::TX
+    alpha, R::TL, T::TD = initial_residual = residual(prob, X)::TX
+    @assert alpha == 1
     initial_residual_norm = norm(initial_residual)
 
     # Initialize shifts
@@ -41,7 +44,6 @@ function CommonSolve.solve(
         @timeit_debug "callbacks" observe_gale_metadata!(observer, "ADI shifts", μ)
 
         # Continue with ADI:
-        Y = (-2real(μ) * T)::TD
         if isreal(μ)
             μᵢ = real(μ)
             F = A' + (μᵢ*E)'
@@ -50,7 +52,7 @@ function CommonSolve.solve(
                 V = solve(inner_prob, inner_alg)::TL
             end
 
-            X += lowrank(V, Y)
+            X -= 2real(μ) * lowrank(V, T)
             mul!(R, E', V, -2μᵢ, true) # R -= (2μᵢ * (E'*V))::TL
             i += 1
             last_compression += 1
@@ -73,7 +75,7 @@ function CommonSolve.solve(
             V′ = Vᵣ + δ*Vᵢ
             V₁ = √2 * V′
             V₂ = sqrt(2δ^2 + 2) * Vᵢ
-            X = X + lowrank(V₁, Y) + lowrank(V₂, Y)
+            X -= 2real(μ) * (lowrank(V₁, T) + lowrank(V₂, T))
             mul!(R, E', V′, -4real(μ), true) # R -= (4real(μ) * (E'*V′))::TL
             i += 2
             last_compression += 2

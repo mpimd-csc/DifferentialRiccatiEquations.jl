@@ -1,13 +1,16 @@
 # This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
 
 function _solve(
-    prob::GDREProblem{LDLᵀ{TL,TD}},
+    prob::GDREProblem{<:LDLᵀ},
     alg::Ros2;
     dt::Real,
     save_state::Bool,
     observer,
-) where {TL,TD}
+)
     observe_gdre_start!(observer, prob, alg)
+
+    TL = eltype(prob.X0.Ls)
+    TD = eltype(prob.X0.Ds)
 
     @unpack E, A, B, C, tspan = prob
     q = size(C, 1)
@@ -21,8 +24,9 @@ function _solve(
     # Output Trajectories
     Xs = [X]
     save_state && sizehint!(Xs, len)
-    L, D = X
+    alpha, L, D = X
     BᵀLD = (B'*L)*D
+    alpha == 1 || rmul!(BᵀLD, alpha)
     K = BᵀLD*(L'*E)
     Ks = [K]
     sizehint!(Ks, len)
@@ -54,8 +58,9 @@ function _solve(
         K1 = solve(lyap, inner_alg; observer)
 
         # Solve Lyapunov equation of 2nd stage
-        T₁, D₁ = K1
+        kappa, T₁, D₁ = K1
         BᵀT₁D₁ = (B'*T₁)*D₁
+        kappa == 1 || rmul!(BᵀT₁D₁, kappa)
         G₂::TL = E'T₁
         S₂::TD = (τ^2 * BᵀT₁D₁)' * BᵀT₁D₁ + (2-1/γ) * D₁
         R2 = lowrank(G₂, S₂)
@@ -68,8 +73,9 @@ function _solve(
         save_state && push!(Xs, X)
 
         # Update K
-        L, D = X
+        alpha, L, D = X
         BᵀLD = (B'*L)*D
+        alpha == 1 || rmul!(BᵀLD, alpha)
         K = BᵀLD*(L'*E)
         push!(Ks, K)
 
