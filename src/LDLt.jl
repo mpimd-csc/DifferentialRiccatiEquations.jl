@@ -101,7 +101,7 @@ function Base.:(+)(X1::LDLᵀ{TL,TD}, X2::LDLᵀ) where {TL,TD}
     append!(Ls, X2.Ls)
     append!(Ds, X2.Ds)
     X = LDLᵀ{TL,TD}(Ls, Ds)
-    maybe_compress!(X)
+    return X
 end
 
 Base.:(-)(X::LDLᵀ{TL,TD}) where {TL,TD} = LDLᵀ{TL,TD}(X.Ls, -X.Ds)
@@ -111,24 +111,6 @@ Base.:(-)(X::LDLᵀ, Y::LDLᵀ) = X + (-Y)
 function Base.:(*)(α::Real, X::LDLᵀ)
     L, D = X
     LDLᵀ(L, α*D)
-end
-
-function compression_due(X::LDLᵀ)
-    # If there is only one component, it has likely already been compressed:
-    length(X.Ls) == 1 && return false
-    # Compression is due every couple of modifications:
-    # TODO: make this configurable
-    length(X.Ls) >= 10 && return true
-    # Compression is due if rank is too large:
-    # TODO: make this configurable
-    n = size(X, 1)
-    r = rank(X)
-    return r >= 0.5n
-end
-
-function maybe_compress!(X::LDLᵀ)
-    compression_due(X) || return X
-    compress!(X)
 end
 
 """

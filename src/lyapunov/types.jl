@@ -24,6 +24,7 @@ abstract type LyapunovSolver end
     shifts::Shifts.Strategy = Shifts.Projection(2)
     ignore_initial_guess::Bool = false # use zero if true
     inner_alg::BlockLinearSolver = Backslash() # to solve BlockLinearProblem
+    compression_interval::Int = 10 # compress roughly every n iterations
 end
 
 ADI(inner_alg; kwargs...) = ADI(; inner_alg, kwargs...)

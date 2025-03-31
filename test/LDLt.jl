@@ -65,9 +65,6 @@ end
 end
 
 @testset "Compression" begin
-    # TODO: Once compression is configurable, this must be adjusted.
-    @assert 2k < 0.5n # U+U does not trigger compression
-
     U = sample(n, k)
     V = Matrix(U)
     W = U + U
@@ -119,13 +116,12 @@ end
 end
 
 @testset "Arithmetic" begin
-    # TODO: Once compression is configurable, this must be adjusted.
-    @assert 3k > 0.5n # X+X+X does trigger compression
-
     X = sample(n, k)
     @test rank(X) == k
+    @test rank(X+X) == 2k
+    @test rank(X+X+X) == 3k
 
     @test rank(compress!(X+X)) == k
-    @test rank(X+X+X) == k
+    @test rank(compress!(X+X+X)) == k
     #@test rank(X-X) == 0 # flaky
 end
