@@ -5,22 +5,27 @@ function CommonSolve.solve(
     alg::Newton;
     observer = nothing,
 ) where {TG,TQ}
-    TG <: LDLᵀ{<:AbstractMatrix,UniformScaling{Bool}} || error("TG=$TG not yet implemented")
-    TQ <: LDLᵀ{<:AbstractMatrix,UniformScaling{Bool}} || error("TQ=$TQ not yet implemented")
+    eltype(prob.G.Ds) == UniformScaling{Bool} || error("TG=$TG not yet implemented")
+    eltype(prob.Q.Ds) == UniformScaling{Bool} || error("TQ=$TQ not yet implemented")
 
     @timeit_debug "callbacks" observe_gare_start!(observer, prob, alg)
     TL = TD = Matrix{Float64}
 
     @unpack E, A, Q = prob
-    B, _ = prob.G
-    Cᵀ, _ = Q
+    alpha, B, _ = prob.G
+    alpha == 1 || error("Scaled prob.G not yet implemented")
+    alpha, Cᵀ, _ = Q
+    alpha == 1 || error("Scaled prob.Q not yet implemented")
     res = Q
     res_norm = norm(res)
     reltol = @something(alg.reltol, size(A, 1) * eps())
     abstol = @something(alg.abstol, reltol * res_norm)
 
+    # This is ugly:
     n = size(A, 2)
-    X = LDLᵀ{TL,TD}(zeros(n, 0), zeros(0, 0)) # this is ugly
+    L = convert(TL, zeros(n, 0))::TL
+    D = convert(TD, zeros(0, 0))::TD
+    X = lowrank(L, D)
 
     i = 0
     local X_prev
@@ -30,9 +35,10 @@ function CommonSolve.solve(
     @unpack inexact, inexact_hybrid, inexact_forcing, linesearch = alg
     while true
         # Compute residual
-        L, D = X
+        alpha, L, D = X
         EᵀL = E'L
         BᵀLD = (B'L)*D
+        alpha == 1 || rmul!(BᵀLD, alpha)
         DLᵀGLD = (BᵀLD)'BᵀLD
         K = BᵀLD * (EᵀL)'
 
@@ -60,9 +66,10 @@ function CommonSolve.solve(
                             @debug "Accepting line search λ=$λ"
                             # Update feedback matrix K and other auxillary variables:
                             # (naive implementation)
-                            L, D = X
+                            alpha, L, D = X
                             EᵀL = E'L
                             BᵀLD = (B'L)*D
+                            alpha == 1 || rmul!(BᵀLD, alpha)
                             DLᵀGLD = (BᵀLD)'BᵀLD
                             K .= BᵀLD * (EᵀL)'
                             break
@@ -100,8 +107,8 @@ function CommonSolve.solve(
         q = size(Cᵀ, 2)
         EᵀXB = EᵀL * (BᵀLD)'
         G::TL = _hcat(TL, Cᵀ, EᵀXB)
-        S::TD = _dcat(TD, I(q), I(m))
-        RHS = LDLᵀ(G, S)
+        S::TD = _dcat(TD, (I(q), I(m)))
+        RHS = lowrank(G, S)
 
         # Lyapunov setup
         lyap = GALEProblem(E, F, RHS)

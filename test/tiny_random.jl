@@ -13,7 +13,7 @@ function test_ale(E, A, g=g)
     n = size(E, 1)
     G = rand(n, g)
     S = Matrix{Float64}(I(g))
-    C = LDLᵀ(G, S)
+    C = lowrank(G, S)
 
     prob = GALEProblem(E, A, C)
     res0 = norm(C)

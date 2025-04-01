@@ -1,15 +1,17 @@
 # This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
 
 function _solve(
-    prob::GDREProblem{LDLᵀ{TL,TD}},
+    prob::GDREProblem{<:LDLᵀ},
     alg::Ros1;
     dt::Real,
     save_state::Bool,
     observer,
-) where {TL,TD}
+)
     @timeit_debug "callbacks" observe_gdre_start!(observer, prob, alg)
 
-    T = LDLᵀ{TL,TD}
+    T = typeof(prob.X0)
+    TL = eltype(prob.X0.Ls)
+    TD = eltype(prob.X0.Ds)
 
     @unpack E, A, B, C, tspan = prob
     q = size(C, 1)
@@ -20,8 +22,9 @@ function _solve(
     # Output Trajectories
     Xs = [X]
     save_state && sizehint!(Xs, len)
-    L, D = X
+    alpha, L, D = X
     BᵀLD = adapt(TD, B'L) * D
+    alpha == 1 || rmul!(BᵀLD, alpha)
     K = adapt(TL, BᵀLD) * (L'E)
     Ks = [K]
     sizehint!(Ks, len)
@@ -37,8 +40,8 @@ function _solve(
 
         # Right-hand side:
         G::TL = _hcat(TL, C', E'L)
-        S::TD = _dcat(TD, I(q), (BᵀLD)' * BᵀLD + D/τ)
-        R::T = compress!(LDLᵀ(G, S))
+        S::TD = _dcat(TD, (I(q), (BᵀLD)' * BᵀLD + D/τ))
+        R::T = compress!(lowrank(G, S))
 
         # Update X
         lyap = GALEProblem(E, F, R)
@@ -47,8 +50,9 @@ function _solve(
         save_state && push!(Xs, X)
 
         # Update K
-        L, D = X
+        alpha, L, D = X
         BᵀLD = adapt(TD, B'L) * D
+        alpha == 1 || rmul!(BᵀLD, alpha)
         K = adapt(TL, BᵀLD) * (L'E)
         push!(Ks, K)
 

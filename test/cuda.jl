@@ -65,9 +65,9 @@ Dd = CuMatrix(D)
 tspan = (1.0, 0.0)
 nsteps = 10
 dt = (tspan[2] - tspan[1]) / nsteps
-prob_cpu = GDREProblem(E, A, B, C, LDLᵀ(L, D), tspan)
-prob_gpu = GDREProblem(Ed, Ad, Bd, Cd, LDLᵀ(Ld, Dd), tspan)
-prob_xpu = GDREProblem(Ed, Ad, Bd, Cd, LDLᵀ(Ld, D), tspan)
+prob_cpu = GDREProblem(E, A, B, C, lowrank(L, D), tspan)
+prob_gpu = GDREProblem(Ed, Ad, Bd, Cd, lowrank(Ld, Dd), tspan)
+prob_xpu = GDREProblem(Ed, Ad, Bd, Cd, lowrank(Ld, D), tspan)
 
 # Collect configurations:
 drop_complex(shifts) = filter(isreal, shifts) # FIXME: complex shifts should work just fine

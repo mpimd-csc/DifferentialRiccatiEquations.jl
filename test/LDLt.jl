@@ -3,125 +3,109 @@
 using Test, DifferentialRiccatiEquations
 using LinearAlgebra
 
-n = 10
-k = 2
+function sample(n, k)
+    for _ in 1:10
+        L = randn(n, k)
+        rank(L) == k && return L
+    end
+    error("Failed to generate full-rank matrix")
+end
 
-@testset "Conversions" begin
-    L = randn(n, k)
-    D = rand(k, k)
-    X = LDLᵀ(L, D)
+function test_lowrank_essentials(X, Uref, Sref, Vref)
+    @assert all(issymmetric, X.Ds)
+
     M = Matrix(X)
+    @test eltype(X) == Float64
+    @test size(X) == (n, n)
+    @test rank(X) == k
 
     @test M isa Matrix{Float64}
     @test size(M) == (n, n)
-    @test M ≈ L*D*L'
-    @test norm(M) ≈ norm(X)
-end
+    @test M ≈ Uref * Sref * Vref'
 
-function sample(n, k)
-    local D, L
-    while true
-        L = randn(n, k)
-        rank(L) == k && break
+    function test_destructure(X)
+        # TODO: Adjust to `alpha, Z1, Y, Z2 = X` once implemented
+        alpha, Z1, Y = X
+        @test alpha === 1.0
+        @test Z1 === Uref
+        @test Y === Sref
     end
-    λ = rand(k) .+ 0.1
-    D = diagm(λ)
-    return LDLᵀ(L, D)
+
+    # Destructure through iteration:
+    test_destructure(X)
+
+    # Repeated iteration does not alter the objects:
+    test_destructure(X)
 end
 
-@testset "Rank k" begin
-    X = sample(n, k)
+function test_lowrank_arithmetic(X)
+    isdefinite = eltype(X.Ds) <: UniformScaling
+    @test !iszero(X)
+
+    T = typeof(X)
+    @test 2X isa T
+    @test -X isa T broken=isdefinite
+    @test X + X isa T
+    @test X - X isa T broken=isdefinite
+
+    Y = 2X
+    @test Y isa T
+    @test Y.alphas == 2 * X.alphas
+    @test Y.Ls === X.Ls
+    @test Y.Ds === X.Ds
+
     M = Matrix(X)
-    @test M isa Matrix{Float64}
     @test rank(X) == rank(M) == k
-
-    _L = only(X.Ls)
-    _D = only(X.Ds)
-    L, D = X
-    @test L === _L
-    @test D === _D
-
-    for d in 2:k
-        D[d,d] = 0
-    end
-    compress!(X)
-    @test rank(X) == 1
-end
-
-@testset "Rank 0" begin
-    X = LDLᵀ(randn(n, 1), zeros(1, 1))
-    @test rank(X) == 1 # not the actual rank
-    compress!(X)
-    @test_broken rank(X) == 0
-    @test Matrix(X) == zeros(n, n)
-
-    X = sample(n, 0)
-    @test rank(X) == 0
-    @test Matrix(X) == zeros(n, n)
+    @test norm(X) ≈ norm(M)
+    @test Matrix(2X + 3X) ≈ 5M
+    @test norm(Matrix(X - X)) / eps() < 10n broken=isdefinite
 
     Z = zero(X)
-    @test typeof(Z) == typeof(X)
+    @test Z isa T
     @test rank(Z) == 0
+    @test iszero(Z)
+    @test Matrix(Z) == zeros(n, n)
+    @test X + Z == X
+    @test Z + X == X
 end
 
-@testset "Compression" begin
-    U = sample(n, k)
-    V = Matrix(U)
-    W = U + U
-    @test rank(V) == k
-    @test rank(W) == 2k
-    @test Matrix(W) ≈ 2V
-
-    @testset "Implicit Compression" begin
-        # Implicit compression upon iteration:
-        W = U + U
-        @test rank(W) == 2k
-        L, D = W
-        @test rank(W) == k
-        @test size(L, 1) == n
-        @test size(L, 2) == size(D, 1) == size(D, 2) == k
-        @test Matrix(W) ≈ L*D*L' ≈ 2V
-
-        # Repeated iteration does not alter the components:
-        L1, D1 = W
-        @test L1 === L
-        @test D1 === D
-    end
-
-    @testset "Skipped Compression" begin
-        # Don't compress singleton components:
-        W = U + U
-        concatenate!(W)
-        @test rank(W) == 2k
-        L, D = W
-        @test size(L, 1) == n
-        @test size(L, 2) == size(D, 1) == size(D, 2) == 2k
-        @test Matrix(W) ≈ L*D*L' ≈ 2V
-    end
-
-    desc = ("w/ ", "w/o")
-    concat = (true, false)
-    @testset "Explicit Compression $d Concatenation" for (d, cc) in zip(desc, concat)
-        # Explicit compression reduces rank:
-        W = U + U
-        cc && concatenate!(W)
-        @test rank(W) == 2k
-        compress!(W)
-        @test rank(W) == k
-        L, D = W
-        @test size(L, 1) == n
-        @test size(L, 2) == size(D, 1) == size(D, 2) == k
-        @test Matrix(W) ≈ L*D*L' ≈ 2V
-    end
-end
-
-@testset "Arithmetic" begin
-    X = sample(n, k)
+function test_lowrank_compression(X)
+    Y = compress!(X + X)
+    @test Y isa typeof(X)
     @test rank(X) == k
-    @test rank(X+X) == 2k
-    @test rank(X+X+X) == 3k
+    @test rank(Y) == k
+    @test Matrix(Y) ≈ 2Matrix(X)
 
-    @test rank(compress!(X+X)) == k
-    @test rank(compress!(X+X+X)) == k
-    #@test rank(X-X) == 0 # flaky
+    eltype(X.Ds) <: UniformScaling && return
+    X = deepcopy(X)
+    S = only(X.Ds)
+    fill!(S, 0)
+    S[1, 1] = 13
+    @test rank(X) == k # storage size != numerical rank
+    @test rank(compress!(X)) == 1
+end
+
+n = 10
+k = 2
+
+U = sample(n, k)
+V = sample(n, k) # TODO
+S = sample(k, k)
+S += S'
+@assert issymmetric(S)
+
+tests = [
+    ("Symmetric definite U * U'", lowrank(U), I, U),
+    ("Symmetric indefinite U * (S::Matrix) * U'", lowrank(U, S), S, U),
+    ("Symmetric indefinite U * (S::Symmetric) * U'", lowrank(U, Symmetric(S)), Symmetric(S), U),
+    # TODO: ("Nonsymmetric U * V'", lowrank(U, I, V), I, V),
+    # TODO: ("Nonsymmetric U * S * V'", lowrank(U, S, V), S, V),
+]
+
+@testset "$desc" for (desc, X, Sref, Vref) in tests
+    @testset "Essentials" test_lowrank_essentials(X, U, Sref, Vref)
+    @testset "Arithmetic" test_lowrank_arithmetic(X)
+    if !(eltype(X.Ds) <: UniformScaling)
+        @testset "Compression" test_lowrank_compression(X)
+    end
 end

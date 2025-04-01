@@ -6,9 +6,10 @@ using CommonSolve: CommonSolve, init, solve, solve!
 using Compat: @something
 
 using Adapt: adapt
+using KernelAbstractions: get_backend
 using LinearAlgebra: LinearAlgebra, ColumnNorm, Factorization, I, Symmetric,
                      UniformScaling, diagm, eigen, factorize, mul!, norm, qr,
-                     rank, schur
+                     rank, rmul!, schur
 using MatrixEquations: lyapc, lyapcs!, utqu!
 using UnPack: @unpack, unpack
 using SparseArrays: SparseArrays,
@@ -96,6 +97,6 @@ export GDREProblem, Ros1, Ros2, Ros3, Ros4
 export GAREProblem, Newton
 export GALEProblem, ADI, BartelsStewart, Kronecker
 export BlockLinearProblem, Backslash, ShermanMorrisonWoodbury
-export LDLᵀ, concatenate!, compress!
+export lowrank, concatenate!, compress!
 
 end
