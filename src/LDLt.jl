@@ -43,7 +43,7 @@ function Base.Matrix(X::LDLᵀ)
     @unpack alphas, Ls, Ds = X
     L = first(Ls)
     n = size(L, 1)
-    M = zeros(eltype(L), n, n)
+    M = zeros(eltype(X), n, n)
     for (a, L, D) in zip(alphas, Ls, Ds)
         M .+= L * (a * D) * L'
     end
@@ -100,12 +100,23 @@ function Base.zero(X::LDLᵀ)
     lowrank(L, D)::typeof(X)
 end
 
+function Base.convert(::Type{LDLᵀ{T,TL,TD}}, X::LDLᵀ) where {T,TL,TD}
+    @debug "convert(::Type{<:LDLᵀ}, ::LDLᵀ)" src=typeof(X) dst=LDLᵀ{T,TL,TD}
+    alphas = convert(Vector{T}, X.alphas)
+    Ls = convert(Vector{TL}, X.Ls)
+    Ds = convert(Vector{TD}, X.Ds)
+    LDLᵀ{T,TL,TD}(alphas, Ls, Ds)
+end
+
 function Base.:(+)(X1::LDLᵀ, X2::LDLᵀ)
     if (n1 = size(X1, 1)) != (n2 = size(X2, 1))
         throw(DimensionMismatch("outer dimensions must match, got $n1 and $n2 instead"))
     end
     iszero(X1) && return X2
     iszero(X2) && return X1
+    if typeof(X1) != typeof(X2)
+        @warn "Calling +(::LDLᵀ, ::LDLᵀ) with different types; converting right argument" src=typeof(X2) dst=typeof(X1) maxlog=1
+    end
     alphas = copy(X1.alphas)
     Ls = copy(X1.Ls)
     Ds = copy(X1.Ds)

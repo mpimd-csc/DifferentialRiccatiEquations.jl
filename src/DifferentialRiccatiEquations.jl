@@ -2,7 +2,7 @@
 
 module DifferentialRiccatiEquations
 
-using CommonSolve: CommonSolve, init, solve, solve!
+using CommonSolve: CommonSolve, init, solve, solve!, step!
 using Compat: @something
 
 using Adapt: adapt
@@ -91,7 +91,7 @@ function CommonSolve.solve(
     )
 end
 
-export solve
+export init, solve, solve!, step!
 export residual
 export GDREProblem, Ros1, Ros2, Ros3, Ros4
 export GAREProblem, Newton

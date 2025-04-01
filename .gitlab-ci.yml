@@ -68,7 +68,7 @@ benchmark:
       - "report.md"
 
 coverage:
-  image: julia:1.6
+  image: julia:1.10
   needs:
     - test
   extends:

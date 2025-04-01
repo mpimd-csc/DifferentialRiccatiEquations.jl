@@ -17,7 +17,7 @@ UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 [compat]
 Adapt = "3, 4"
 CUDA = "5.5"
-CommonSolve = "0.1, 0.2"
+CommonSolve = "0.2.4"
 Compat = "3.44, 4.1"
 IterativeSolvers = "0.9"
 KernelAbstractions = "0.9"

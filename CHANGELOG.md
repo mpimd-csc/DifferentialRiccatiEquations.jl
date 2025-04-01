@@ -4,6 +4,7 @@ This release completely changes the user-facing API.
 Refer to the docstrings of the algorithm types for more details.
 
 * Breaking: Require Julia v1.10
+* Breaking: Require CommonSolve v0.2.4
 * Breaking: Remove `test/Rail371.mat`; use `SteelProfile(371)` from MORWiki.jl instead
 * Breaking: New default value `ADI(; ignore_initial_guess=false)` differs from v0.4 behavior
 * Breaking: Remove implicit/automatic/magic compression for low-rank objects
