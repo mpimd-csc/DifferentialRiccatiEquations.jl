@@ -21,7 +21,7 @@ function CommonSolve.solve(
     TL = eltype(C.Ls)
     TD = eltype(C.Ds)
     X::TX = initial_guess::TX
-    alpha, R::TL, T::TD = initial_residual = residual(prob, X)::TX
+    alpha, R::TL, T::TD = initial_residual = residual(prob, X)
     @assert alpha == 1
     initial_residual_norm = norm(initial_residual)
 

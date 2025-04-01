@@ -6,26 +6,28 @@
 )
 
     @unpack E, A, C = prob
+    iszero(val) && return deepcopy(C)
+
     alpha, G, S = C
     beta, L, D = val
     n_G = size(G, 2)
     n_0 = size(L, 2)
     dim = n_G + 2n_0
-    dim == n_G && return deepcopy(C)
 
     TL = eltype(val.Ls)
-    TD = eltype(val.Ds)
     R::TL = _hcat(TL, G, E'L, A'L)
-    T::TD = _zeros(TD, dim, dim)
+    T = zeros(eltype(val), dim, dim)
     i1 = 1:n_G
     i2 = (1:n_0) .+ n_G
     i3 = i2 .+ n_0
-    T[i1, i1] = alpha * S
-    T[i3, i2] = beta * D
-    T[i2, i3] = beta * D
+    T11 = view(T, i1, i1)
+    T23 = view(T, i2, i3)
+    T32 = view(T, i3, i2)
+    mul!(T11, alpha, S)
+    mul!(T23, beta, D)
+    copyto!(T32, T23)
 
-    R̃ = lowrank(R, T)::typeof(val)
-    compress!(R̃) # unconditionally
+    compress!(lowrank(R, T))
 end
 
 @timeit_debug "residual(::GALEProblem, ::Matrix)" function residual(
