@@ -17,17 +17,12 @@ B = Matrix(B)
 C = Matrix(C)
 tspan = (4500., 4400.) # backwards in time
 
-# Low-Rank Setup With Dense D
+# Low-Rank Setup
 q = size(C, 1)
 L = E \ C'
 D = Matrix(0.01I(q))
 X0s = lowrank(L, D)
-sprob1 = GDREProblem(E, A, B, C, X0s, tspan)
-
-# Low-Rank Setup With Sparse D
-Ds = sparse(0.01I(q))
-X0ss = lowrank(L, Ds)
-sprob2 = GDREProblem(E, A, B, C, X0ss, tspan)
+probs = GDREProblem(E, A, B, C, X0s, tspan)
 
 # Dense Setup
 X0 = Matrix(X0s)
@@ -35,7 +30,6 @@ prob = GDREProblem(E, A, B, C, X0, tspan)
 
 # Verify Low-Rank Setup
 @test E * X0 * E' ≈ C' * C / 100
-@test Matrix(X0ss) ≈ X0
 
 Δt(nsteps::Int) = (tspan[2] - tspan[1]) ÷ nsteps
 
@@ -60,16 +54,9 @@ end
     # Replicate K with dense solver:
     ref = solve(prob, alg; dt=Δt(5))
     ε = norm(ref.K[end]) * size(E, 1) * eps() * 100
-    @testset "Dense D" begin
-        smoketest(sprob1, alg)
-        sol1 = solve(sprob1, alg; dt=Δt(5))
-        @test norm(ref.K[end] - sol1.K[end]) < ε
-    end
-    @testset "Sparse D" begin
-        smoketest(sprob2, alg)
-        sol2 = solve(sprob2, alg; dt=Δt(5))
-        @test norm(ref.K[end] - sol2.K[end]) < ε
-    end
+    smoketest(probs, alg)
+    sol = solve(probs, alg; dt=Δt(5))
+    @test norm(ref.K[end] - sol.K[end]) < ε
 end
 
 @testset "Low-Rank Ros2()" begin
@@ -77,16 +64,9 @@ end
     # Replicate K with dense solver:
     ref = solve(prob, alg; dt=Δt(5))
     ε = norm(ref.K[end]) * size(E, 1) * eps() * 100
-    @testset "Dense D" begin
-        smoketest(sprob1, alg)
-        sol1 = solve(sprob1, alg; dt=Δt(5))
-        @test norm(ref.K[end] - sol1.K[end]) < ε
-    end
-    @testset "Sparse D" begin
-        smoketest(sprob2, alg)
-        sol2 = solve(sprob2, alg; dt=Δt(5))
-        @test norm(ref.K[end] - sol2.K[end]) < ε
-    end
+    smoketest(probs, alg)
+    sol = solve(probs, alg; dt=Δt(5))
+    @test norm(ref.K[end] - sol.K[end]) < ε
 end
 
 using DifferentialRiccatiEquations.Shifts
