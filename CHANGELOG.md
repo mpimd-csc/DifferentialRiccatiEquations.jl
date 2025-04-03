@@ -1,4 +1,4 @@
-# v0.5.x
+# v0.5.0
 
 This release completely changes the user-facing API.
 Refer to the docstrings of the algorithm types for more details.
