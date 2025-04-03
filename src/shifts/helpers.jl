@@ -114,6 +114,7 @@ flip(x::Real) = -x
 flip(x::Complex) = complex(-real(x), imag(x))
 
 function stabilize_ritz_values!(λ, desc)
+    @assert length(λ) > 0
     n = count(!isstable, λ)
     if 0 < n < length(λ)
         @warn "Discarding unstable Ritz values of $desc"

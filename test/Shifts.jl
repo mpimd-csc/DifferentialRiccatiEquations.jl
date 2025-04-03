@@ -7,7 +7,7 @@ using Test
 using DifferentialRiccatiEquations
 using DifferentialRiccatiEquations: Shifts
 using .Shifts
-using .Shifts: take!, init
+using .Shifts: take!
 using .Shifts: flip, isstable, stabilize_ritz_values!
 
 penzl(p) = [-1 p; -p -1]
@@ -73,7 +73,7 @@ end
 @testset "Heuristic Penzl Shifts" begin
     k = 2
     strategy = Heuristic(k, 2, 2)
-    shifts = init(strategy, (; E, A))
+    shifts = Shifts.init(strategy, (; E, A))
 
     @test shifts isa Vector{ComplexF64}
     @test k <= length(shifts) <= k + 1
@@ -96,7 +96,7 @@ end
 end
 
 @testset "Cyclic helper" begin
-    shifts = init(Cyclic(1:3), nothing)
+    shifts = Shifts.init(Cyclic(1:3), nothing)
     @test take!(shifts) == 1
     @test take!(shifts) == 2
     @test take!(shifts) == 3
@@ -107,14 +107,14 @@ end
         (1.0, 2.0), # Tuple
         ComplexF64[1, 2], # Vector
     )
-        shifts = init(Cyclic(values), nothing)
+        shifts = Shifts.init(Cyclic(values), nothing)
         a, b = values
         # Check value and type:
         @test take!(shifts) === a
         @test take!(shifts) === b
     end
 
-    shifts = init(Cyclic(Heuristic(1, 1, 1)), (; E, A))
+    shifts = Shifts.init(Cyclic(Heuristic(1, 1, 1)), (; E, A))
     p = take!(shifts)
     if isreal(p)
         @test take!(shifts) == p
@@ -125,7 +125,7 @@ end
 
     @testset "Wrapped" begin
         strategy = Cyclic(Wrapped(Base.splat(Returns(42)), Heuristic(1, 1, 1)))
-        shifts = init(strategy, (; E, A))
+        shifts = Shifts.init(strategy, (; E, A))
         @test take!(shifts) === 42
         @test take!(shifts) === 42
     end
@@ -137,14 +137,14 @@ Shifts.init(d::Dummy, _) = Shifts.BufferedIterator(DummyIterator(d.values))
 Shifts.take_many!(d::DummyIterator) = d.values
 
 # Prerequisite:
-@test init(Dummy(nothing), nothing) isa Shifts.BufferedIterator
+@test Shifts.init(Dummy(nothing), nothing) isa Shifts.BufferedIterator
 
 @testset "BufferedIterator helper" begin
     @testset "Type Stability $(eltype(values))" for values in (
         [1, 2, 3],
         ComplexF64[1, 2, 3],
     )
-        shifts = init(Dummy(copy(values)), nothing)
+        shifts = Shifts.init(Dummy(copy(values)), nothing)
         # Check value and type stability:
         for v in values
             @test take!(shifts) === v
@@ -153,7 +153,7 @@ Shifts.take_many!(d::DummyIterator) = d.values
 end
 
 @testset "Wrapped helper" begin
-    shifts = init(Wrapped(reverse, Dummy([1,2,3])), nothing)
+    shifts = Shifts.init(Wrapped(reverse, Dummy([1,2,3])), nothing)
     @test shifts isa Shifts.BufferedIterator
     @test shifts.generator isa Shifts.WrappedIterator
     @test shifts.generator.generator isa DummyIterator
@@ -166,7 +166,7 @@ end
     @test_throws ArgumentError Projection(1)
 
     strategy = Projection(2)
-    shifts = init(strategy, (; E, A))
+    shifts = Shifts.init(strategy, (; E, A))
 
     # Ensure that no shifts have been computed so far:
     @test shifts isa Shifts.BufferedIterator
@@ -216,7 +216,7 @@ end
             A = zeros(4, 4)
             A[1:2, 1:2] .= modified_penzl(f(1))
             A[3:4, 3:4] .= modified_penzl(f(2))
-            shifts = init(Shifts.Projection(2), (; E=I4, A))
+            shifts = Shifts.init(Shifts.Projection(2), (; E=I4, A))
 
             # Hack input such that full spectrum of A is returned.
             Shifts.update!(shifts, nothing, nothing, I4)

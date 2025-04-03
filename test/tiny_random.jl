@@ -27,6 +27,17 @@ function test_ale(E, A, g=g)
 
     @test delta(Matrix(X_adi), X_ref) < 1e-10
     @test delta(X_bad, X_ref) < 0.02
+
+    solver = init(prob, ADI())
+    niter(solver) = length(solver.shifts)
+    prev = 0
+    @testset "ADI loop $i" for (i, _) in enumerate(solver)
+        curr = niter(solver)
+        @test prev + 1 <= curr <= prev + 2
+        prev = curr
+    end
+    solver.last_compression > 0 && compress!(solver)
+    @test solver.X == X_adi
 end
 
 @testset "Symmetric E" begin
