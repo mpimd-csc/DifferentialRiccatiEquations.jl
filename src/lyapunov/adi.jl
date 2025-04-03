@@ -90,6 +90,12 @@ function CommonSolve.solve!(cache::ADICache)
     return X
 end
 
+function Base.iterate(cache::ADICache, done=false)
+    done && return nothing
+    step!(cache)
+    return cache, isdone(cache)
+end
+
 function CommonSolve.step!(cache::ADICache)
     (; alg, abstol, observer, shifts_oracle) = cache
     (; maxiters) = alg
