@@ -106,14 +106,13 @@ sol_full = solve(prob, Ros1(); dt=-100, save_state=true)
 Continuing from the dense setup,
 assemble a low-rank variant of the initial value,
 $X_0 = LDL^T$ where $E^T X_0 E = C^T C / 100$ in this case.
-Both dense and sparse factors are allowed for $D$.
 
 ```julia
 using SparseArrays
 
 q = size(C, 1)
 L = E \ C'
-D = sparse(0.01I(q))
+D = Matrix(0.01I(q))
 X0_lr = lowrank(L, D)
 
 Matrix(X0_lr) ≈ X0
