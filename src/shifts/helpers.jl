@@ -20,6 +20,12 @@ struct Cyclic <: Strategy
     inner
 end
 
+function Base.hash(c::Cyclic, h::UInt)
+    hv = hash(21)
+    hv = hash(c.inner, hv)
+    hash(hv, h)
+end
+
 """
     Wrapped(func!, ::Shifts.Strategy)
 
@@ -42,6 +48,13 @@ end
 struct Wrapped <: Strategy
     func!
     inner::Strategy
+end
+
+function Base.hash(w::Wrapped, h::UInt)
+    hv = hash(22)
+    hv = hash(w.func!, hv)
+    hv = hash(w.inner, hv)
+    hash(hv, h)
 end
 
 ###

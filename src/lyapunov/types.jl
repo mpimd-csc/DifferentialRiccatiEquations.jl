@@ -29,5 +29,13 @@ end
 
 ADI(inner_alg; kwargs...) = ADI(; inner_alg, kwargs...)
 
+function Base.hash(alg::ADI, h::UInt)
+    hv = hash(42)
+    for p in propertynames(alg)
+        hv ⊻= hash(p, hash(getproperty(alg, p)))
+    end
+    hash(hv, h)
+end
+
 struct BartelsStewart <: LyapunovSolver end
 struct Kronecker <: LyapunovSolver end

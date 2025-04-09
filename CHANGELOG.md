@@ -1,3 +1,7 @@
+# v0.5.1
+
+* Improve interoperability with DrWatson: `filename=hash` now works with `::Shifts.Strategy` and `::ADI`
+
 # v0.5.0
 
 This release completely changes the user-facing API.
