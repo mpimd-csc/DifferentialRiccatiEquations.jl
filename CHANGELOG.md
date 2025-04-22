@@ -1,6 +1,9 @@
 # v0.5.1
 
 * Improve interoperability with DrWatson: `filename=hash` now works with `::Shifts.Strategy` and `::ADI`
+* Technically breaking: Fix `solve(::GALEProblem, ::ADI)` for scaled right-hand sides, e.g., `GALEProblem(E, A, 2C)`.
+  This change removes the `R` and `T` fields, while adding a `residual` field to the *internal* `ADICache` struct.
+  If you only accessed these fields via the public `residual(::ADICache)`, you are of course not affected.
 
 # v0.5.0
 

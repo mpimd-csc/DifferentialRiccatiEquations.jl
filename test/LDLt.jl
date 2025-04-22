@@ -53,6 +53,7 @@ function test_lowrank_arithmetic(X)
     @test Y.alphas == 2 * X.alphas
     @test Y.Ls === X.Ls
     @test Y.Ds === X.Ds
+    @test norm(Y) ≈ 2norm(X)
 
     M = Matrix(X)
     @test rank(X) == rank(M) == k

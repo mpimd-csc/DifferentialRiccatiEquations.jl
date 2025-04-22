@@ -12,8 +12,8 @@ g = 4
 function test_ale(E, A, g=g)
     n = size(E, 1)
     G = rand(n, g)
-    S = Matrix{Float64}(I(g))
-    C = lowrank(G, S)
+    S = -Matrix{Float64}(I(g))
+    C = -2lowrank(G, S)
 
     prob = GALEProblem(E, A, C)
     res0 = norm(C)

@@ -16,8 +16,7 @@ using Compat: @something
     V1::Union{Nothing,Rtype} = nothing
     V2::Union{Nothing,Rtype} = nothing
     # Residual factors:
-    R::Rtype
-    T::Ttype
+    residual::LDLᵀ{Eltype,Rtype,Ttype}
     residual_norm::Eltype
 end
 
@@ -25,7 +24,7 @@ function uses_mixed_precision(::ADICache{Eltype,Ztype,Rtype,Ttype}) where {Eltyp
     !allequal(eltype, (Eltype, Ztype, Rtype, Ttype))
 end
 
-residual(cache::ADICache) = lowrank(cache.R, cache.T)
+residual(cache::ADICache) = cache.residual
 
 function CommonSolve.init(
     prob::GALEProblem{<:LDLᵀ},
@@ -46,9 +45,8 @@ function CommonSolve.init(
         initial_residual = residual(prob, initial_guess)
     end
     X = initial_guess
-    alpha, R, T = initial_residual
+    _, R = initial_residual
     residual_norm = norm(initial_residual)::eltype(X)
-    @assert alpha == 1
     @assert eltype(X.Ds) == eltype(initial_residual.Ds)
 
     # Initialize shifts
@@ -67,7 +65,7 @@ function CommonSolve.init(
     @timeit_debug "callbacks" observe_gale_step!(observer, 0, X, initial_residual, residual_norm)
 
     increment = zero(initial_residual)
-    ADICache(; prob, alg, abstol, observer, shifts_oracle, shifts, R, T, X, increment, residual_norm)
+    ADICache(; prob, alg, abstol, observer, shifts_oracle, shifts, X, increment, residual=initial_residual, residual_norm)
 end
 
 function CommonSolve.solve!(cache::ADICache)
@@ -149,9 +147,10 @@ function compress!(cache::ADICache)
 end
 
 function perform_single_step!(cache::ADICache, μ)
-    (; prob, alg, R, T) = cache
+    (; prob, alg, residual) = cache
     (; E, A) = prob
-    Rtype = typeof(cache.R)
+    alpha, R, T = residual
+    Rtype = typeof(R)
 
     # Compute increment:
     F = A' + (μ*E)'
@@ -161,10 +160,10 @@ function perform_single_step!(cache::ADICache, μ)
     end
     if uses_mixed_precision(cache) && iszero(V)
         @warn "Increment is zero"
-        cache.increment = zero(lowrank(R, T))
+        cache.increment = zero(residual)
         return nothing
     end
-    increment = -2real(μ) * lowrank(V, T)
+    increment = (-2real(μ) * alpha) * lowrank(V, T)
     cache.increment = increment::typeof(cache.increment)
 
     # Update residual:
@@ -180,9 +179,10 @@ function perform_single_step!(cache::ADICache, μ)
 end
 
 function perform_double_step!(cache::ADICache, μ)
-    (; prob, alg, R, T) = cache
+    (; prob, alg, residual) = cache
     (; E, A) = prob
-    Rtype = typeof(cache.R)
+    alpha, R, T = residual
+    Rtype = typeof(R)
     Vᵣ::Rtype = cache.V1 = @something(cache.V1, similar(R))::Rtype
     Vᵢ::Rtype = cache.V2 = @something(cache.V2, similar(R))::Rtype
 
@@ -199,7 +199,7 @@ function perform_double_step!(cache::ADICache, μ)
     end
     if iszero(V)
         @warn "Increment is zero"
-        cache.increment = zero(lowrank(R, T))
+        cache.increment = zero(residual)
         return nothing
     end
     δ = real(μ) / imag(μ)
@@ -209,7 +209,7 @@ function perform_double_step!(cache::ADICache, μ)
     el = eltype(Rtype)
     V₁ = (@. el(√2) * Vᵣ + el(√2 * δ) * Vᵢ)::Rtype
     V₂ = (el(sqrt(2δ^2 + 2)) * Vᵢ)::Rtype
-    increment = -2real(μ) * (lowrank(V₁, T) + lowrank(V₂, T))
+    increment = (-2real(μ) * alpha) * (lowrank(V₁, T) + lowrank(V₂, T))
     cache.increment = increment::typeof(cache.increment)
 
     # Update residual:

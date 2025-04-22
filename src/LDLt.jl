@@ -77,6 +77,7 @@ See also: [`orthf`](@ref)
 @timeit_debug "norm(::LDLᵀ)" function LinearAlgebra.norm(X::LDLᵀ)
     # Decompose while not triggering compression.
     concatenate!(X)
+    a = only(X.alphas)
     L = only(X.Ls)
     D = only(X.Ds)
     # TODO: evaluate whether `compress!` could share any code with `norm`.
@@ -84,7 +85,7 @@ See also: [`orthf`](@ref)
     # The Q operator of the orth-plus-square decomposition does not alter the Frobenius norm.
     # It may therefore be omitted from the matrix inside the norm.
     R = adapt(typeof(D), R)
-    norm(restrict(D, R'))
+    abs(a) * norm(restrict(D, R'))
 end
 
 # The inner factors may be of type UniformScaling, i.e., they may not have a size.
@@ -150,6 +151,8 @@ This is a somewhat cheap operation.
 See also: [`compress!`](@ref)
 """
 @timeit_debug "concatenate!(::LDLᵀ)" function concatenate!(X::LDLᵀ)
+    length(X.alphas) == 1 && return X
+
     TL = eltype(X.Ls)
     TD = eltype(X.Ds)
     @unpack alphas, Ls, Ds = X
