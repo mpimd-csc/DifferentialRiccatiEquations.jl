@@ -1,18 +1,8 @@
-.default_cache: &default_cache
-  key: ${CI_RUNNER_ID}-${CI_JOB_IMAGE}
-  paths:
-    - ${JULIA_DEPOT_PATH}/artifacts
-    - ${JULIA_DEPOT_PATH}/compiled
-    - ${JULIA_DEPOT_PATH}/logs
-    - ${JULIA_DEPOT_PATH}/packages
-    - ${JULIA_DEPOT_PATH}/scratchspaces
+include:
+  - component: $CI_SERVER_FQDN/ci-components/julia/cache@1
 
 default:
   interruptible: true
-  cache: *default_cache
-
-variables:
-  JULIA_DEPOT_PATH: ${CI_PROJECT_DIR}/.julia
 
 # Prevent duplicate pipelines
 # https://docs.gitlab.com/ee/ci/yaml/workflow.html#switch-between-branch-pipelines-and-merge-request-pipelines
@@ -46,6 +36,7 @@ test:
   extends:
     - .script
     - .rules
+    - .julia_cache
   artifacts:
     when: always
     name: artifact-$IMAGE
@@ -55,8 +46,8 @@ test:
 benchmark:
   image: julia:1.10
   cache:
-    - *default_cache
-    - key: ${CI_RUNNER_ID}-tune
+    - !reference [.julia_cache, cache]
+    - key: tune#${CI_RUNNER_ID}
       paths:
         - benchmark/tune.json
   script:
