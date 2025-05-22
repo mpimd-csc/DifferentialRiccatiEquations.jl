@@ -1,5 +1,6 @@
 include:
   - component: $CI_SERVER_FQDN/ci-components/julia/cache@1
+  - component: $CI_SERVER_FQDN/ci-components/julia/runtests@1
 
 default:
   interruptible: true
@@ -12,36 +13,6 @@ workflow:
     - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
       when: never
     - if: $CI_COMMIT_BRANCH
-
-.script:
-  script:
-    - julia --project=@. -e "using Pkg; Pkg.build(); Pkg.test(coverage=${COVERAGE-false})"
-    - find ${JULIA_DEPOT_PATH} -name '*.cov' -delete
-
-.rules:
-  rules:
-    - if: $CI_COMMIT_BRANCH =~ /doc/
-      when: never
-    - when: always
-
-test:
-  parallel:
-    matrix:
-      - IMAGE:
-          - julia:1.10
-          - julia:1
-  image: $IMAGE
-  variables:
-    COVERAGE: "true"
-  extends:
-    - .script
-    - .rules
-    - .julia_cache
-  artifacts:
-    when: always
-    name: artifact-$IMAGE
-    paths:
-      - "**/*.cov"
 
 benchmark:
   image: julia:1.10
@@ -58,34 +29,3 @@ benchmark:
     paths:
       - "report.md"
 
-coverage:
-  image: julia:1.10
-  needs:
-    - test
-  extends:
-    - .rules
-  coverage: /Test coverage (\d+\.\d+%)/
-  script:
-    - |
-      julia --project=@. -e '
-      using Pkg
-      Pkg.add("LocalCoverage")
-      using LocalCoverage
-      c = generate_coverage(; run_test=false)
-      # Print overview
-      using Printf
-      @printf "Test coverage %.2f%%\n" c.coverage_percentage
-      # Generate detailed report for GitLab
-      using LocalCoverage: COVDIR, LCOVINFO
-      cobertura = joinpath(COVDIR, "cobertura.xml")
-      lcov = joinpath(COVDIR, LCOVINFO)
-      write_lcov_to_xml(cobertura, lcov)
-      '
-  artifacts:
-    paths:
-      - coverage/lcov.info
-      - coverage/cobertura.xml
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage/cobertura.xml
