@@ -14,14 +14,15 @@ end
 function test_lowrank_essentials(X, Uref, Sref, Vref)
     @assert all(issymmetric, X.Ds)
 
-    M = Matrix(X)
     @test eltype(X) == Float64
     @test size(X) == (n, n)
     @test rank(X) == k
 
+    M = Matrix(X)
     @test M isa Matrix{Float64}
     @test size(M) == (n, n)
     @test M ≈ Uref * Sref * Vref'
+    @test M == convert(Matrix, X)
 
     function test_destructure(X)
         # TODO: Adjust to `alpha, Z1, Y, Z2 = X` once implemented
