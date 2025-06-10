@@ -4,6 +4,7 @@
 * Technically breaking: Fix `solve(::GALEProblem, ::ADI)` for scaled right-hand sides, e.g., `GALEProblem(E, A, 2C)`.
   This change removes the `R` and `T` fields, while adding a `residual` field to the *internal* `ADICache` struct.
   If you only accessed these fields via the public `residual(::ADICache)`, you are of course not affected.
+* Fix `convert(Matrix, ::LDLᵀ)`
 
 # v0.5.0
 

@@ -40,6 +40,9 @@ Base.eltype(::Type{<:LDLᵀ{T}}) where {T} = T
 
 # Mainly for testing
 function Base.Matrix(X::LDLᵀ)
+    convert(Matrix, X)
+end
+function Base.convert(::Type{Matrix}, X::LDLᵀ)
     @unpack alphas, Ls, Ds = X
     L = first(Ls)
     n = size(L, 1)
