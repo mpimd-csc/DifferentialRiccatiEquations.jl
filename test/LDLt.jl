@@ -18,11 +18,13 @@ function test_lowrank_essentials(X, Uref, Sref, Vref)
     @test size(X) == (n, n)
     @test rank(X) == k
 
-    M = Matrix(X)
-    @test M isa Matrix{Float64}
-    @test size(M) == (n, n)
-    @test M ≈ Uref * Sref * Vref'
-    @test M == convert(Matrix, X)
+    @testset "Conversion to $T" for T in (Matrix, Matrix{Float64}, Matrix{Float32})
+        M = T(X)
+        @test M isa T
+        @test size(M) == (n, n)
+        @test M ≈ Uref * Sref * Vref'
+        @test M == convert(T, X)
+    end
 
     function test_destructure(X)
         # TODO: Adjust to `alpha, Z1, Y, Z2 = X` once implemented
