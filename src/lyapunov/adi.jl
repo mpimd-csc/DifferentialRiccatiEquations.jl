@@ -21,7 +21,7 @@ using Compat: @something
 end
 
 function uses_mixed_precision(::ADICache{Eltype,Ztype,Rtype,Ttype}) where {Eltype,Ztype,Rtype,Ttype}
-    !allequal(eltype, (Eltype, Ztype, Rtype, Ttype))
+    !allequal(eltype(T) for T in (Eltype, Ztype, Rtype, Ttype))
 end
 
 residual(cache::ADICache) = cache.residual

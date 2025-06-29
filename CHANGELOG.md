@@ -1,3 +1,9 @@
+# v0.5.2
+
+* Remove use of `allequal(f, itr)`, as that is not available in Compat v3 or v4.1.
+  Changing the compat annotation to v4.13 would have been a breaking change.
+* Fix `convert(Matrix{T}, ::LDLᵀ) where {T}`
+
 # v0.5.1
 
 * Improve interoperability with DrWatson: `filename=hash` now works with `::Shifts.Strategy` and `::ADI`

@@ -1,7 +1,5 @@
 # This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
 
-using Compat: allequal
-
 """
     lowrank(L, D)::LDLᵀ
 
@@ -39,14 +37,13 @@ Base.:(==)(X::LDLᵀ, Y::LDLᵀ) = X.alphas == Y.alphas && X.Ls == Y.Ls && X.Ds 
 Base.eltype(::Type{<:LDLᵀ{T}}) where {T} = T
 
 # Mainly for testing
-function Base.Matrix(X::LDLᵀ)
-    convert(Matrix, X)
-end
-function Base.convert(::Type{Matrix}, X::LDLᵀ)
+Base.convert(::Type{T}, X::LDLᵀ) where {T <: Matrix} = T(X)::T
+Base.Matrix(X::LDLᵀ) = Matrix{eltype(X)}(X)
+function Base.Matrix{T}(X::LDLᵀ) where {T}
     @unpack alphas, Ls, Ds = X
     L = first(Ls)
     n = size(L, 1)
-    M = zeros(eltype(X), n, n)
+    M = zeros(T, n, n)
     for (a, L, D) in zip(alphas, Ls, Ds)
         M .+= L * (a * D) * L'
     end
