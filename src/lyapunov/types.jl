@@ -25,6 +25,7 @@ abstract type LyapunovSolver end
     ignore_initial_guess::Bool = false # use zero if true
     inner_alg::BlockLinearSolver = Backslash() # to solve BlockLinearProblem
     compression_interval::Int = 10 # compress roughly every n iterations
+    compression::Bool = true # disable compression entirely if false
 end
 
 ADI(inner_alg; kwargs...) = ADI(; inner_alg, kwargs...)

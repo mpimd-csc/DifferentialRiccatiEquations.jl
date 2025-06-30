@@ -1,3 +1,8 @@
+# v0.5.3
+
+* Add option `ADI(; compression::Bool = true)` to disable low-rank compression entirely if set to `false`.
+  Use `alpha, Z, Y = concatenate!(X::LDLᵀ)` to avoid the implicit call to `compress!(X)` upon `iterate(X)`.
+
 # v0.5.2
 
 * Remove use of `allequal(f, itr)`, as that is not available in Compat v3 or v4.1.

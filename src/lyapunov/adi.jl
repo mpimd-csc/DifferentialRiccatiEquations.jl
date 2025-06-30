@@ -75,7 +75,7 @@ function CommonSolve.solve!(cache::ADICache)
     end
 
     # Run compression, if necessary:
-    if cache.last_compression > 0
+    if cache.alg.compression && cache.last_compression > 0
         compress!(cache)
     end
 
@@ -108,7 +108,7 @@ function CommonSolve.step!(cache::ADICache)
         perform_double_step!(cache, μ)
     end
 
-    if cache.last_compression >= alg.compression_interval
+    if alg.compression && cache.last_compression >= alg.compression_interval
         compress!(cache)
     end
 
