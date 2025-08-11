@@ -1,3 +1,9 @@
+# v0.5.4
+
+* Add `GMRES` solver for `GALEProblem`s. See `benchmarks.jl` for a demo.
+* Add option `ADI(; warn_convergence::Bool = true)` to disable warning if the algorithm did not converge.
+  This option is useful if the ADI is used as a preconditioner, e.g., `GMRES(; preconditioner=ADI(; maxiters=10))`.
+
 # v0.5.3
 
 * Add option `ADI(; compression::Bool = true)` to disable low-rank compression entirely if set to `false`.

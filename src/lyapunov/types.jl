@@ -26,6 +26,7 @@ abstract type LyapunovSolver end
     inner_alg::BlockLinearSolver = Backslash() # to solve BlockLinearProblem
     compression_interval::Int = 10 # compress roughly every n iterations
     compression::Bool = true # disable compression entirely if false
+    warn_convergence::Bool = true # warn if method failed to converge
 end
 
 ADI(inner_alg; kwargs...) = ADI(; inner_alg, kwargs...)
@@ -39,4 +40,15 @@ function Base.hash(alg::ADI, h::UInt)
 end
 
 struct BartelsStewart <: LyapunovSolver end
+
+@kwdef struct GMRES <: LyapunovSolver
+    maxiters::Int = 3 # per restart
+    maxrestarts::Int = 0
+    reltol::Union{Nothing,Real} = nothing
+    abstol::Union{Nothing,Real} = nothing # TODO: Should I remove this in the next release?
+    ignore_initial_guess::Bool = false # use zero if true
+    compression::Bool = true # disable compression entirely if false
+    preconditioner::Union{Nothing,LyapunovSolver} = nothing
+end
+
 struct Kronecker <: LyapunovSolver end

@@ -123,7 +123,7 @@ function CommonSolve.step!(cache::ADICache)
     i <= maxiters && return nothing
 
     @timeit_debug "callbacks" observe_gale_failed!(observer)
-    @warn "ADI did not converge" residual=res_norm abstol maxiters
+    cache.alg.warn_convergence && @warn "ADI did not converge" residual=res_norm abstol maxiters
     return nothing
 end
 

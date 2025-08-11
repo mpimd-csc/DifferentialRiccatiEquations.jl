@@ -8,10 +8,11 @@ using Compat: @something
 using Adapt: adapt
 using KernelAbstractions: get_backend
 using LinearAlgebra: LinearAlgebra, ColumnNorm, Factorization, I, Symmetric,
-                     UniformScaling, diagm, eigen, factorize, mul!, norm, qr,
+                     UniformScaling, diagm, dot, eigen, factorize, mul!, norm, qr,
                      rank, rmul!, schur
 using MatrixEquations: lyapc, lyapcs!, utqu!
 using UnPack: @unpack, unpack
+using ConstructionBase: setproperties
 using SparseArrays: SparseArrays,
                     SparseMatrixCSC,
                     AbstractSparseMatrix,
@@ -39,6 +40,7 @@ include("blocklinear/sherman-morrison-woodbury.jl")
 include("lyapunov/types.jl")
 include("lyapunov/adi.jl")
 include("lyapunov/bartels-stewart.jl")
+include("lyapunov/gmres.jl")
 include("lyapunov/kronecker.jl")
 include("lyapunov/residual.jl")
 
@@ -95,7 +97,7 @@ export init, solve, solve!, step!
 export residual
 export GDREProblem, Ros1, Ros2, Ros3, Ros4
 export GAREProblem, Newton
-export GALEProblem, ADI, BartelsStewart, Kronecker
+export GALEProblem, ADI, BartelsStewart, GMRES, Kronecker
 export BlockLinearProblem, Backslash, ShermanMorrisonWoodbury
 export lowrank, concatenate!, compress!
 
