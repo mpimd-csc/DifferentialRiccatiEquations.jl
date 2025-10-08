@@ -88,6 +88,25 @@ See also: [`orthf`](@ref)
     abs(a) * norm(restrict(D, R'))
 end
 
+@timeit_debug "dot(::LDLᵀ, ::LDLᵀ)" function LinearAlgebra.dot(X1::LDLᵀ, X2::LDLᵀ)
+    n = size(X1, 1)
+    n == size(X2, 1) || throw(DimensionMismatch())
+    T = promote_type(eltype(X1), eltype(X2))
+    concatenate!(X1)
+    concatenate!(X2)
+    alpha, A, B = X1
+    beta, C, D = X2
+    BᵀAᵀCD = B' * (A'C) * D
+    BᵀAᵀCD .*= alpha * beta
+    res = zero(T)
+    for i in 1:n
+        ai = view(A', :, i)
+        ci = view(C', :, i)
+        res += dot(ai, BᵀAᵀCD, ci)
+    end
+    return res
+end
+
 # The inner factors may be of type UniformScaling, i.e., they may not have a size.
 # Therefore, query the outer factors instead:
 LinearAlgebra.rank(X::LDLᵀ) = sum(L -> size(L, 2), X.Ls)
@@ -138,6 +157,8 @@ function Base.:(*)(alpha::Real, X::LDLᵀ)
     alphas = alpha * X.alphas
     typeof(X)(alphas, X.Ls, X.Ds)
 end
+
+Base.:(/)(X::LDLᵀ, alpha::Real) = (1 / alpha) * X
 
 """
     concatenate!(X::LDLᵀ)

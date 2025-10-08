@@ -17,7 +17,8 @@ workflow:
 benchmark:
   image: julia:1.10
   cache:
-    - !reference [.julia_cache, cache]
+    - key: benchmark#${CI_RUNNER_ID}
+      paths: !reference [.julia_cache, cache, paths]
     - key: tune#${CI_RUNNER_ID}
       paths:
         - benchmark/tune.json
