@@ -120,7 +120,7 @@ function CommonSolve.step!(cache::ADICache)
     @debug "ADI" i abstol residual=res_norm rank(X) compressed=iszero(cache.last_compression)
 
     res_norm <= abstol && return nothing
-    i <= maxiters && return nothing
+    i < maxiters && return nothing
 
     @timeit_debug "callbacks" observe_gale_failed!(observer)
     cache.alg.warn_convergence && @warn "ADI did not converge" residual=res_norm abstol maxiters
@@ -137,7 +137,7 @@ function isdone(cache::ADICache)
     niters > 0 && iszero(cache.increment) && return true
 
     # Did we exceed the maximum number of iterations?
-    niters > cache.alg.maxiters
+    niters >= cache.alg.maxiters
 end
 
 function compress!(cache::ADICache)

@@ -3,6 +3,7 @@
 * Add `GMRES` solver for `GALEProblem`s. See `benchmarks.jl` for a demo.
 * Add option `ADI(; warn_convergence::Bool = true)` to disable warning if the algorithm did not converge.
   This option is useful if the ADI is used as a preconditioner, e.g., `GMRES(; preconditioner=ADI(; maxiters=10))`.
+* Fix `ADI(; maxiters::Int)`: previously, the algorithm had performed up to `maxiters + 1` iterations.
 
 # v0.5.3
 
