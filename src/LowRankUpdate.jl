@@ -53,7 +53,7 @@ function Base.adjoint(AUV::LowRankUpdate)
     LowRankUpdate(A', α', V', U')
 end
 
-function Matrix(AUV::LowRankUpdate)
+function Base.Matrix(AUV::LowRankUpdate)
     A, α, U, V = AUV
     A + inv(α) * (U * V)
 end
