@@ -1,3 +1,8 @@
+# v0.5.5
+
+* Fix `solve(_, ::GMRES; preconditioner, observer)`:
+  previously, the `observer` had not been forwarded to `solve(_, preconditioner; observer)`.
+
 # v0.5.4
 
 * Add `GMRES` solver for `GALEProblem`s. See `benchmarks.jl` for a demo.

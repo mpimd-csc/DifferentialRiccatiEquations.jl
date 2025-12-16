@@ -48,7 +48,7 @@ function CommonSolve.solve(
             if preconditioner === nothing
                 Z[j] = V[j]
             else
-                Z[j] = solve(GALEProblem(E, A, V[j]), preconditioner)
+                Z[j] = solve(GALEProblem(E, A, V[j]), preconditioner; observer)
             end
             W = L * Z[j]
             compression && compress!(W)
