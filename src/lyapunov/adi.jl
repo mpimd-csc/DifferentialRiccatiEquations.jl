@@ -161,11 +161,18 @@ function perform_single_step!(cache::ADICache, μ)
     alpha, R, T = residual
     Rtype = typeof(R)
 
+    # Specify inner solver tolerances:
+    kwargs = (;)
+    if cache.alg.inexact
+        kwargs = cache.alg.inexact_forcing(cache)
+        @timeit_debug "callbacks" observe_gale_metadata!(cache.observer, "Inexact ADI tolerances", kwargs)
+    end
+
     # Compute increment:
     F = assemble_shifted_system(A', E', μ)
     @timeit_debug "solve (real)" begin
         inner_prob = BlockLinearProblem(F, R)
-        V = solve(inner_prob, alg.inner_alg)::Rtype
+        V = solve(inner_prob, alg.inner_alg; kwargs...)::Rtype
     end
     if uses_mixed_precision(cache) && iszero(V)
         @warn "Increment is zero"
@@ -200,11 +207,18 @@ function perform_double_step!(cache::ADICache, μ)
     push!(cache.shifts, μ_next)
     @timeit_debug "callbacks" observe_gale_metadata!(cache.observer, "ADI shifts", μ_next)
 
+    # Specify inner solver tolerances:
+    kwargs = (;)
+    if cache.alg.inexact
+        kwargs = cache.alg.inexact_forcing(cache)
+        @timeit_debug "callbacks" observe_gale_metadata!(cache.observer, "Inexact ADI tolerances", kwargs)
+    end
+
     # Compute increment:
     F = assemble_shifted_system(A', E', μ)
     @timeit_debug "solve (complex)" begin
         inner_prob = BlockLinearProblem(F, R)
-        V = solve(inner_prob, alg.inner_alg)
+        V = solve(inner_prob, alg.inner_alg; kwargs...)
     end
     if iszero(V)
         @warn "Increment is zero"
@@ -231,4 +245,36 @@ function perform_double_step!(cache::ADICache, μ)
 
     @timeit_debug "shifts" Shifts.update!(cache.shifts_oracle, cache.X, R, V₁, V₂)
     return nothing
+end
+
+"""
+    simple_adi_forcing(cache::ADICache) -> kwargs
+
+Compute solver tolerances arguments passed onto the inner block-linear solver,
+typically `kwargs = (; abstol::Float64, reltol::Float64)`,
+based on the simple relaxation strategy described in equation (3.18a) of:
+
+> Kürschner and Freitag:
+> Inexact methods for the low rank solution to large scale Lyapunov equations.
+> https://doi.org/10.1007/s10543-020-00813-4
+
+!!! warning "Experimental"
+    This function is not part of the stability promises of semantic versioning.
+    That is, the API may change or the function might be removed any time.
+"""
+function simple_adi_forcing(cache::ADICache)
+    abstol = cache.abstol / 4 / cache.alg.maxiters / sqrt(cache.residual_norm)
+
+    # TODO: KurF20 seem to do this, but shoudn't these be clamps to the corresponding reltol?
+    abstol = clamp(abstol, 1e-12, 0.1)
+
+    # Disable the contribution of `reltol` to the decision of algorithm termination,
+    # which is required for, e.g., Krylov.jl solvers using `abstol + reltol * norm(...)`.
+    # For any of our own solvers, which query `reltol` only if `abstol` is unset,
+    # setting `reltol` to zero will do no harm.
+    reltol = 0.0
+
+    @timeit_debug "callbacks" observe_gale_metadata!(cache.observer, "ADI inexact abstol", abstol)
+
+    return (; abstol, reltol)
 end

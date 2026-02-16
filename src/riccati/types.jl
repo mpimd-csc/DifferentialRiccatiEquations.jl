@@ -105,6 +105,7 @@ References:
     reltol::Union{Nothing,Real} = nothing
     abstol::Union{Nothing,Real} = nothing
     inner_alg = ADI()
+    # Keep inexact_* parameter names in sync with ADI:
     inexact::Bool = true
     inexact_hybrid::Bool = true
     inexact_forcing = quadratic_forcing
