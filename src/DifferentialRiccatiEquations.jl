@@ -50,6 +50,7 @@ include("util/_diagm.jl")
 include("util/_dcat.jl")
 include("util/_hcat.jl")
 include("util/restrict.jl")
+include("util/solution.jl")
 
 abstract type Algorithm end
 @kwdef struct Ros1 <: Algorithm
