@@ -20,6 +20,7 @@ using CUDA
     @testset "residual" begin include("residual.jl") end
     @testset "hash" begin include("hash.jl") end
     @testset "ADI Shifts" begin include("Shifts.jl") end
+    @testset "Block-linear equations" begin include("blocklinear.jl") end
     @testset "Tiny Random" begin include("tiny_random.jl") end
     @testset "Oberwolfach Rail" begin include("rail.jl") end
 

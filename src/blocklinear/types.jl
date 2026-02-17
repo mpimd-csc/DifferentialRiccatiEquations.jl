@@ -12,6 +12,21 @@ struct BlockLinearProblem
     B
 end
 
+# Avoid dependency on SciMLBase:
+"""
+Linear system with a single right-hand side
+
+    Ax = b
+
+having fields `A` and `b`.
+"""
+struct LinearProblem
+    A
+    b
+end
+
+rhs(prob::LinearProblem) = prob.b
+
 """
 Default interface:
 
@@ -32,6 +47,39 @@ struct Backslash <: BlockLinearSolver
     factorize
     Backslash(f=factorize_unless_factorized) = new(f)
 end
+
+"""
+    ColumnWise(alg)::BlockLinearSolver
+
+Solve a block-linear system column by column.
+The inner algorithm `alg` must permit the following usage:
+
+```julia
+import DifferentialRiccatiEquations as DRE
+
+cache = CommonSolve.init(prob::DRE.LinearProblem, alg; abstol)
+CommonSolve.solve!(cache)
+
+b = DRE.rhs(cache) # must be in-place modifiable
+x = DRE.solution(cache) # safe to alias internal state
+```
+
+In particular, we following must be allowed:
+
+```julia
+copyto!(DRE.rhs(cache), _)
+copyto!(_, DRE.solution(cache))
+```
+
+Furthermore, `init(_, alg)` will only be called once overall,
+but `solve!(cache)` will be called multiple times while updating `rhs(cache)` in between.
+
+See also: [`BlockLinearProblem`](@ref), [`LinearProblem`](@ref), [`rhs`](@ref), [`solution`](@ref)
+"""
+struct ColumnWise <: BlockLinearSolver
+    alg
+end
+
 struct ShermanMorrisonWoodbury <: BlockLinearSolver
     ALG::BlockLinearSolver
     alg::BlockLinearSolver

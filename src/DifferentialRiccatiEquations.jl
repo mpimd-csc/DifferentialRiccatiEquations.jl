@@ -34,6 +34,7 @@ include("LowRankUpdate.jl")
 
 # Linear (block) vector solvers:
 include("blocklinear/backslash.jl")
+include("blocklinear/column-wise.jl")
 include("blocklinear/sherman-morrison-woodbury.jl")
 
 # Linear matrix equations:
@@ -99,7 +100,7 @@ export residual
 export GDREProblem, Ros1, Ros2, Ros3, Ros4
 export GAREProblem, Newton
 export GALEProblem, ADI, BartelsStewart, GMRES, Kronecker
-export BlockLinearProblem, Backslash, ShermanMorrisonWoodbury
+export BlockLinearProblem, Backslash, ColumnWise, ShermanMorrisonWoodbury
 export lowrank, concatenate!, compress!
 
 end

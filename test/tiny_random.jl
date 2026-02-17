@@ -20,6 +20,7 @@ function test_ale(E, A, g=g)
     res0 = norm(C)
 
     X_adi = solve(prob, ADI())
+    X_adi2 = solve(prob, ADI(ColumnWise(SimpleBiCGStab())))
     X_ref = solve(prob, BartelsStewart())
     X_bad = solve(prob, Kronecker())
     X_gmres = solve(prob, GMRES(; maxiters=5, reltol=1e-8))
@@ -36,11 +37,13 @@ function test_ale(E, A, g=g)
     ))
     @test norm(residual(prob, X_ref)) / res0 < 1e-10
     @test norm(residual(prob, X_adi)) / res0 < 1e-10
+    @test norm(residual(prob, X_adi2)) / res0 < 1e-10
     @test norm(residual(prob, X_bad)) / res0 < 0.02
     @test norm(residual(prob, X_gmres)) / res0 < 1e-8
     @test norm(residual(prob, X_fgmres)) / res0 < 1e-10
 
     @test delta(Matrix(X_adi), X_ref) < 1e-10
+    @test delta(Matrix(X_adi2), X_ref) < 1e-10
     @test delta(Matrix(X_gmres), X_ref) < 1e-8
     @test delta(Matrix(X_fgmres), X_ref) < 1e-10
     @test delta(X_bad, X_ref) < 0.02
