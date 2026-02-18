@@ -20,6 +20,7 @@ end
 function test_lr_update(A, U, V)
     AUV = lr_update(A, -1, U, V) # technically a downdate
     @test AUV isa LowRankUpdate
+    @test eltype(AUV) == Float64
 
     # Decomposition:
     _A, _α, _U, _V = AUV

@@ -1,3 +1,7 @@
+# v0.5.6
+
+* Fix `eltype(::LowRankUpdate)`
+
 # v0.5.5
 
 * Fix `solve(_, ::GMRES; preconditioner, observer)`:
