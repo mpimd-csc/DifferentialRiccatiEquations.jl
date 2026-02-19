@@ -33,7 +33,9 @@ julia = "1.10"
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 IterativeSolvers = "42fd0dbc-a981-5370-80f2-aaf504508153"
 MORWiki = "4add22a6-c4b7-49d8-833a-0e1707ec89d0"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+StableRNGs = "860ef19b-820b-49d6-a774-d7a799459cd3"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["CUDA", "IterativeSolvers", "MORWiki", "Test"]
+test = ["CUDA", "IterativeSolvers", "MORWiki", "Random", "StableRNGs", "Test"]
