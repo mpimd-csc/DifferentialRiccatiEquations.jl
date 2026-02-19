@@ -6,8 +6,6 @@ struct ColumnWiseSolver
     cache
 end
 
-solution(colwise::ColumnWiseSolver) = colwise.X
-
 function CommonSolve.init(
     prob::BlockLinearProblem,
     colwise::ColumnWise;
