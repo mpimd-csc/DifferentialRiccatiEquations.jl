@@ -9,6 +9,7 @@
 # While convenient during testing, it may be too much to ask from our users.
 
 using DifferentialRiccatiEquations: LinearProblem
+using Random: AbstractRNG, default_rng
 
 import CommonSolve
 import DifferentialRiccatiEquations: rhs, solution
@@ -16,6 +17,7 @@ import DifferentialRiccatiEquations: rhs, solution
 @kwdef struct SimpleBiCGStab
     maxiters::Int = 100
     reltol::Float64 = 100eps()
+    rng::AbstractRNG = default_rng()
 end
 
 struct SimpleBiCGStabCache{T}
@@ -37,6 +39,9 @@ solution(cache::SimpleBiCGStabCache) = cache.x
 function CommonSolve.init(prob::LinearProblem, alg::SimpleBiCGStab)
     (; A, b) = prob
 
+    # For better reproducibility and predictability:
+    rng = copy(alg.rng)
+
     # Pre-allocate all vectors:
     x = similar(b, eltype(A))
     h = similar(x)
@@ -47,7 +52,7 @@ function CommonSolve.init(prob::LinearProblem, alg::SimpleBiCGStab)
     t = similar(x)
 
     # Random r0 can improve stability:
-    r0 = randn(eltype(A), length(b))
+    r0 = randn(rng, eltype(A), length(b))
     r0 ./= norm(r0)
 
     SimpleBiCGStabCache{typeof(x)}(prob, alg, x, h, s, r, v, p, t, r0)

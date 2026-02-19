@@ -36,6 +36,7 @@ include("LowRankUpdate.jl")
 include("blocklinear/backslash.jl")
 include("blocklinear/column-wise.jl")
 include("blocklinear/sherman-morrison-woodbury.jl")
+include("blocklinear/with-kwargs.jl")
 
 # Linear matrix equations:
 include("lyapunov/types.jl")
@@ -100,7 +101,7 @@ export residual
 export GDREProblem, Ros1, Ros2, Ros3, Ros4
 export GAREProblem, Newton
 export GALEProblem, ADI, BartelsStewart, GMRES, Kronecker
-export BlockLinearProblem, Backslash, ColumnWise, ShermanMorrisonWoodbury
+export BlockLinearProblem, Backslash, ColumnWise, ShermanMorrisonWoodbury, WithKwargs
 export lowrank, concatenate!, compress!
 
 end
