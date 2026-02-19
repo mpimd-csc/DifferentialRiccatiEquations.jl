@@ -1,10 +1,15 @@
 # v0.5.6
 
+All linear solvers from LinearSolve.jl can now be used inside `ADI`.
+
 * Fix `eltype(::LowRankUpdate)`
 * Add `ndims(::LowRankUpdate)`
 * Add `ColumnWise` convenience wrapper to allow column-wise linear solvers inside `ADI`.
   Example: `ADI(ColumnWise(SimpleBiCGStab()))` where `SimpleBiCGStab()` is implemented in `test/simple-bicgstab.jl`.
   See docstring of `ColumnWise` for more info.
+* Add `WithKwargs` convenience wrapper to bundle an algorithm with some keyword arguments.
+  Example: `ADI(ColumnWise(WithKwargs(LinearSolve.KrylovJL_BICGSTAB(); maxiters)))`.
+  See docstring of `WithKwargs` for more info.
 
 # v0.5.5
 

@@ -15,6 +15,12 @@ SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 TimerOutputs = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
+[weakdeps]
+LinearSolve = "7ed4a6bd-45f5-4d41-b270-4a48e9bafcae"
+
+[extensions]
+LinearSolveExt = "LinearSolve"
+
 [compat]
 Adapt = "3, 4"
 CUDA = "5.5"
@@ -23,6 +29,7 @@ Compat = "3.44, 4.1"
 ConstructionBase = "1"
 IterativeSolvers = "0.9"
 KernelAbstractions = "0.9"
+LinearSolve = "3"
 MORWiki = "0.3"
 MatrixEquations = "1, 2"
 TimerOutputs = "0.5.23"
@@ -38,4 +45,4 @@ StableRNGs = "860ef19b-820b-49d6-a774-d7a799459cd3"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["CUDA", "IterativeSolvers", "MORWiki", "Random", "StableRNGs", "Test"]
+test = ["CUDA", "IterativeSolvers", "LinearSolve", "MORWiki", "Random", "StableRNGs", "Test"]

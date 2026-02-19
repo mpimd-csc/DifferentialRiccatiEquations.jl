@@ -4,6 +4,7 @@ using Test
 using DifferentialRiccatiEquations
 using DifferentialRiccatiEquations: LinearProblem, LowRankUpdate
 using LinearAlgebra
+using LinearSolve: KrylovJL_BICGSTAB
 using SparseArrays
 using StableRNGs
 
@@ -33,6 +34,7 @@ b = randn(rng, n)
 reltol = 1e-10
 maxiters = 2n
 simple_bicgstab = SimpleBiCGStab(; maxiters, reltol, rng=StableRNG(42))
+krylov_bicgstab = WithKwargs(KrylovJL_BICGSTAB(); maxiters, reltol)
 
 @testset "$desc" for (desc, A) in (
     ("Real A", Ar),
@@ -42,8 +44,10 @@ simple_bicgstab = SimpleBiCGStab(; maxiters, reltol, rng=StableRNG(42))
 )
     prob = LinearProblem(A, b)
     test_linear(prob, simple_bicgstab; reltol)
+    test_linear(prob, krylov_bicgstab; reltol = 20reltol)
 
     prob = BlockLinearProblem(A, B)
     test_linear(prob, Backslash(); reltol)
     test_linear(prob, ColumnWise(simple_bicgstab); reltol)
+    test_linear(prob, ColumnWise(krylov_bicgstab); reltol = 20reltol)
 end
