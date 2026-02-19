@@ -34,7 +34,12 @@ b = randn(rng, n)
 reltol = 1e-10
 maxiters = 2n
 simple_bicgstab = SimpleBiCGStab(; maxiters, reltol, rng=StableRNG(42))
-krylov_bicgstab = WithKwargs(KrylovJL_BICGSTAB(); maxiters, reltol)
+krylov_bicgstab = WithKwargs(
+    KrylovJL_BICGSTAB();
+    maxiters,
+    reltol,
+    abstol = 0.0, # overwrite default sqrt(eps(eltype(A)))
+)
 
 @testset "$desc" for (desc, A) in (
     ("Real A", Ar),
@@ -44,10 +49,10 @@ krylov_bicgstab = WithKwargs(KrylovJL_BICGSTAB(); maxiters, reltol)
 )
     prob = LinearProblem(A, b)
     test_linear(prob, simple_bicgstab; reltol)
-    test_linear(prob, krylov_bicgstab; reltol = 20reltol)
+    test_linear(prob, krylov_bicgstab; reltol)
 
     prob = BlockLinearProblem(A, B)
     test_linear(prob, Backslash(); reltol)
     test_linear(prob, ColumnWise(simple_bicgstab); reltol)
-    test_linear(prob, ColumnWise(krylov_bicgstab); reltol = 20reltol)
+    test_linear(prob, ColumnWise(krylov_bicgstab); reltol)
 end
