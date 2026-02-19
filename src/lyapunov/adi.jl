@@ -25,6 +25,7 @@ function uses_mixed_precision(::ADICache{Eltype,Ztype,Rtype,Ttype}) where {Eltyp
 end
 
 residual(cache::ADICache) = cache.residual
+solution(cache::ADICache) = cache.X
 
 function CommonSolve.init(
     prob::GALEProblem{<:LDLᵀ},

@@ -38,7 +38,7 @@ lr_update
 lr_update(A::Matrix{T}, α, U, V) where {T} = A + (inv(α)*U)*V
 lr_update(A::AbstractSparseMatrix, α, U, V) = LowRankUpdate(A, α, U, V)
 
-Base.eltype(::Type{LowRankUpdate{TA,T,TU,TV}}) where {TA,T,TU,TV} = Base.promote_eltype(TA, T, TU, TV)
+Base.eltype(::Type{LowRankUpdate{TA,T,TU,TV}}) where {TA,T,TU,TV} = Base.promote_type(eltype(TA), T, eltype(TU), eltype(TV))
 
 Base.iterate(AUV::LowRankUpdate) = AUV.A, Val(:a)
 Base.iterate(AUV::LowRankUpdate, ::Val{:a}) = AUV.α, Val(:U)

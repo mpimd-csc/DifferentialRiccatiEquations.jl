@@ -1,3 +1,10 @@
+# v0.5.6
+
+* Fix `eltype(::LowRankUpdate)`
+* Add `ColumnWise` convenience wrapper to allow column-wise linear solvers inside `ADI`.
+  Example: `ADI(ColumnWise(SimpleBiCGStab()))` where `SimpleBiCGStab()` is implemented in `test/simple-bicgstab.jl`.
+  See docstring of `ColumnWise` for more info.
+
 # v0.5.5
 
 * Fix `solve(_, ::GMRES; preconditioner, observer)`:

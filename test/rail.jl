@@ -8,6 +8,8 @@ using MORWiki: SteelProfile, assemble
 
 const DREs = DifferentialRiccatiEquations
 
+@isdefined(SimpleBiCGStab) || include("simple-bicgstab.jl")
+
 # Ensure headless downloads succeed:
 ENV["DATADEPS_ALWAYS_ACCEPT"] = 1
 
@@ -51,12 +53,20 @@ end
 
 @testset "Low-Rank Ros1()" begin
     alg = Ros1()
+    algs = Ros1(ADI(ColumnWise(SimpleBiCGStab())))
+
     # Replicate K with dense solver:
     ref = solve(prob, alg; dt=Δt(5))
     ε = norm(ref.K[end]) * size(E, 1) * eps() * 100
-    smoketest(probs, alg)
-    sol = solve(probs, alg; dt=Δt(5))
-    @test norm(ref.K[end] - sol.K[end]) < ε
+
+    @testset "Default inner solver" for (desc, algs) in (
+        ("ADI w/ default inner solver", alg),
+        ("ADI w/ BiCGStab", algs),
+    )
+        smoketest(probs, algs)
+        sol = solve(probs, algs; dt=Δt(5))
+        @test norm(ref.K[end] - sol.K[end]) < ε
+    end
 end
 
 @testset "Low-Rank Ros2()" begin
