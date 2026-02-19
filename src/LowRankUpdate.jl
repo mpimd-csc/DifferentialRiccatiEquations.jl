@@ -47,6 +47,7 @@ Base.iterate(AUV::LowRankUpdate, ::Val{:V}) = AUV.V, nothing
 
 Base.size(AUV::LowRankUpdate) = size(AUV.A)
 Base.size(AUV::LowRankUpdate, i) = size(AUV.A, i)
+Base.ndims(::LowRankUpdate) = 2
 
 function Base.adjoint(AUV::LowRankUpdate)
     A, α, U, V = AUV
