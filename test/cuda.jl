@@ -29,13 +29,6 @@ struct CG <: BlockLinearSolver end
     A⁻¹B
 end
 
-function DRE.orthf(L::CuMatrix)
-    F = svd(L)
-    Q = F.U
-    X = Diagonal(F.S) * F.Vt
-    Q, X
-end
-
 # Assemble system matrices:
 n = 10
 E = I + 0.1 * sprand(n, n, 1/n)
