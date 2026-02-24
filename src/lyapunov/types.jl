@@ -15,6 +15,13 @@ struct GALEProblem{T}
     GALEProblem(E, A, C::T) where {T} = new{T}(E, A, C)
 end
 
+function Adapt.adapt_structure(to, prob::GALEProblem)
+    E = adapt(to, prob.E)
+    A = adapt(to, prob.A)
+    C = adapt(to, prob.C)
+    return GALEProblem(E, A, C)
+end
+
 abstract type LyapunovSolver end
 
 @kwdef struct ADI <: LyapunovSolver

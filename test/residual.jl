@@ -1,7 +1,10 @@
 # This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
 
 using Test
+using Adapt: adapt
+using CUDA
 using DifferentialRiccatiEquations
+using KernelAbstractions
 using LinearAlgebra, SparseArrays
 
 function test_residual_zero(prob, C)
@@ -10,14 +13,16 @@ function test_residual_zero(prob, C)
     @test res == C
     @test res !== C # must be safe to modify in-place
 
+    backend = get_backend(prob.A)
+    mat0 = KernelAbstractions.zeros(backend, eltype(res), n, n)
     res0 = norm(C)
     @test norm(res) ≈ res0
-    @test norm(residual(prob, zeros(n, n))) ≈ res0
+    @test norm(residual(prob, mat0)) ≈ res0
 end
 
 function test_residual_rand(prob, X)
     resX = residual(prob, X)
-    resM = residual(prob, Matrix(X))
+    resM = residual(prob, AbstractMatrix(X))
     @test typeof(resX) <: DifferentialRiccatiEquations.LDLᵀ
     @test eltype(resX) == eltype(X)
     @test eltype(resX.Ls) == eltype(X.Ls)
@@ -42,37 +47,56 @@ c = 4 # rank of constant term
 q = 3 # rank of quadratic term
 z = 2 # rank of random solution
 inner_factors = (:definite, :scaled, :indefinite)
+backends = Any[ # prefix, outer-factor backend, inner-factor backend
+    ("", CPU(), CPU()),
+]
+CUDA.functional() && append!(backends, [
+    ("CUDA: ", CUDABackend(), CUDABackend()),
+    ("CUDA+CPU: ", CUDABackend(), CPU()),
+])
 
 # Assemble system matrices:
-E = sprand(T, n, n, 1/n)
-A = sprand(T, n, n, 1/n)
+Eh = sprand(T, n, n, 1/n)
+Ah = sprand(T, n, n, 1/n)
 
 # Assemble random solution:
-Z = rand(n, z)
-Y = assemble_factor(:indefinite, T, z)
+Zh = rand(n, z)
+Yh = assemble_factor(:indefinite, T, z)
 
-@testset "GALEProblem" begin
+@testset "$(prefix)GALEProblem" for (prefix, TO, to) in backends
+    E = adapt(TO, Eh)
+    A = adapt(TO, Ah)
+    Z = adapt(TO, Zh)
+    Y = adapt(to, Yh)
     @testset "$desc C" for desc in inner_factors
-        S = assemble_factor(desc, T, c)
-        C = lowrank(rand(n, c), S)
+        G = adapt(TO, randn(n, c))
+        S = adapt(to, assemble_factor(desc, T, c))
+        C = lowrank(G, S)
         prob = GALEProblem(E, A, C)
         @testset "zero X" test_residual_zero(prob, C)
         @testset "definite X" test_residual_rand(prob, 2lowrank(Z))
         @testset "indefinite X" test_residual_rand(prob, 2lowrank(Z, Y))
     end
-end
+end;
 
-@testset "GAREProblem" begin
+@testset "$(prefix)GAREProblem" for (prefix, TO, to) in backends
+    E = adapt(TO, Eh)
+    A = adapt(TO, Ah)
+    Z = adapt(TO, Zh)
+    Y = adapt(to, Yh)
     @testset "$desc C" for desc in inner_factors
-        C_inner = assemble_factor(desc, T, c)
-        C = lowrank(rand(n, c), C_inner)
+        C_outer = adapt(TO, rand(n, c))
+        C_inner = adapt(to, assemble_factor(desc, T, c))
+        C_inner = adapt(to, C_inner)
+        C = lowrank(C_outer, C_inner)
         @testset "$desq Q" for desq in inner_factors
-            Q_inner = assemble_factor(desq, T, q)
-            Q = lowrank(rand(n, q), Q_inner)
+            Q_outer = adapt(TO, rand(n, q))
+            Q_inner = adapt(to, assemble_factor(desq, T, q))
+            Q = lowrank(Q_outer, Q_inner)
             prob = GAREProblem(E, A, Q, C)
             @testset "zero X" test_residual_zero(prob, C)
             @testset "definite X" test_residual_rand(prob, 2lowrank(Z))
             @testset "indefinite X" test_residual_rand(prob, 2lowrank(Z, Y))
         end
     end
-end
+end;

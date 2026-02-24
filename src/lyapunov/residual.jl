@@ -14,9 +14,18 @@
     n_0 = size(L, 2)
     dim = n_G + 2n_0
 
+    # Try to assemble residual of the same type as `val`:
+    backend = if has_backend(D)
+        get_backend(D)
+    elseif has_backend(S)
+        get_backend(S)
+    else
+        KernelAbstractions.CPU()
+    end
+
     TL = eltype(val.Ls)
     R::TL = _hcat(TL, G, E'L, A'L)
-    T = zeros(eltype(val), dim, dim)
+    T = KernelAbstractions.zeros(backend, eltype(val), dim, dim)
     i1 = 1:n_G
     i2 = (1:n_0) .+ n_G
     i3 = i2 .+ n_0
@@ -32,11 +41,11 @@ end
 
 @timeit_debug "residual(::GALEProblem, ::Matrix)" function residual(
     prob::GALEProblem,
-    X::Matrix;
+    X::AbstractMatrix;
 )
 
     @unpack E, A, C = prob
-    res = Matrix(C)
+    res = convert(typeof(X), C)
     res += A' * X * E
     res += E' * X * A
 end

@@ -3,9 +3,10 @@
 module CUDAExt
 
 using CUDA
-using LinearAlgebra: Diagonal, svd
+using LinearAlgebra: Diagonal, UniformScaling, checksquare, diagind, svd
 
 import DifferentialRiccatiEquations: orthf
+import LinearAlgebra
 
 # There is no (pivoted) QR on the GPU. Use the SVD instead:
 function orthf(L::CuMatrix)
@@ -13,6 +14,23 @@ function orthf(L::CuMatrix)
     Q = F.U
     X = Diagonal(F.S) * F.Vt
     Q, X
+end
+
+# Adapted from uniformscaling.jl:287 as of Julia 1.10.9
+# TODO: Discuss this change upstream:
+function LinearAlgebra.mul!(out::SubArray{T, 2, <: CuMatrix{T}}, a::Number, B::UniformScaling, α::Number, β::Number) where {T}
+    checksquare(out)
+    if iszero(β)  # zero contribution of the out matrix
+        fill!(out, zero(T))
+    elseif !isone(β)
+        rmul!(out, β)
+    end
+    s = convert(T, a*B.λ*α)
+    if !iszero(s)
+        ids = diagind(out)
+        out[ids] .+= s # allocates :-(
+    end
+    return out
 end
 
 end

@@ -47,9 +47,12 @@ Base.:(==)(X::LDLᵀ, Y::LDLᵀ) = X.alphas == Y.alphas && X.Ls == Y.Ls && X.Ds 
 Base.eltype(::Type{<:LDLᵀ{T}}) where {T} = T
 
 # Mainly for testing
-Base.convert(::Type{T}, X::LDLᵀ) where {T <: Matrix} = T(X)::T
-Base.Matrix(X::LDLᵀ) = Matrix{eltype(X)}(X)
-function Base.Matrix{T}(X::LDLᵀ) where {T}
+Base.convert(::Type{T}, X::LDLᵀ) where {T <: AbstractMatrix} = convert(T, AbstractMatrix(X))
+Base.Matrix(X::LDLᵀ) = convert(Matrix, X) # legacy
+Base.Matrix{T}(X::LDLᵀ) where {T} = convert(Matrix{T}, X) # legacy
+
+Base.AbstractMatrix(X) = AbstractMatrix{eltype(X)}(X)
+function Base.AbstractMatrix{T}(X) where {T}
     @unpack alphas, Ls, Ds = X
     L = first(Ls)
     n = size(L, 1)
@@ -61,7 +64,7 @@ function Base.Matrix{T}(X::LDLᵀ) where {T}
         end
         M .+= L * (a * D) * L'
     end
-    return Matrix{T}(M)
+    return M
 end
 
 # Destructuring via iteration

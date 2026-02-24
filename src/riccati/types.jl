@@ -50,6 +50,14 @@ struct GAREProblem{TG,TQ}
     Q::TQ
 end
 
+function Adapt.adapt_structure(to, prob::GAREProblem)
+    E = adapt(to, prob.E)
+    A = adapt(to, prob.A)
+    G = adapt(to, prob.G)
+    Q = adapt(to, prob.Q)
+    return GAREProblem(E, A, G, Q)
+end
+
 abstract type AlgebraicRiccatiSolver end
 
 """
