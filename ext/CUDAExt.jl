@@ -32,7 +32,7 @@ function orthf(L::CuMatrix)
 end
 
 # Adapted from uniformscaling.jl:287 as of Julia 1.10.9
-# TODO: Discuss this change upstream:
+# See https://github.com/JuliaGPU/CUDA.jl/issues/3044
 function LinearAlgebra.mul!(out::SubArray{T, 2, <: CuMatrix{T}}, a::Number, B::UniformScaling, α::Number, β::Number) where {T}
     checksquare(out)
     if iszero(β)  # zero contribution of the out matrix
