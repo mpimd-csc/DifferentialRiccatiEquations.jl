@@ -32,19 +32,36 @@ struct LDLᵀ{T,TL,TD}
     Ds::Vector{TD}
 end
 
+function Adapt.adapt_structure(to, X::LDLᵀ)
+    Ls = map(adapt(to), X.Ls)
+    Ds = map(adapt(to), X.Ds)
+    return LDLᵀ(X.alphas, Ls, Ds)
+end
+
+# We deliberately do not define `get_backend(::LDLᵀ)`,
+# because that would be ambiguous, for example,
+# if `L` is a GPU array while `D` is a CPU array.
+
 Base.:(==)(X::LDLᵀ, Y::LDLᵀ) = X.alphas == Y.alphas && X.Ls == Y.Ls && X.Ds == Y.Ds
 
 Base.eltype(::Type{<:LDLᵀ{T}}) where {T} = T
 
 # Mainly for testing
-Base.convert(::Type{T}, X::LDLᵀ) where {T <: Matrix} = T(X)::T
-Base.Matrix(X::LDLᵀ) = Matrix{eltype(X)}(X)
-function Base.Matrix{T}(X::LDLᵀ) where {T}
+Base.convert(::Type{T}, X::LDLᵀ) where {T <: AbstractMatrix} = convert(T, AbstractMatrix(X))
+Base.Matrix(X::LDLᵀ) = convert(Matrix, X) # legacy
+Base.Matrix{T}(X::LDLᵀ) where {T} = convert(Matrix{T}, X) # legacy
+
+Base.AbstractMatrix(X) = AbstractMatrix{eltype(X)}(X)
+function Base.AbstractMatrix{T}(X) where {T}
     @unpack alphas, Ls, Ds = X
     L = first(Ls)
     n = size(L, 1)
-    M = zeros(T, n, n)
+    backend = get_backend(L)
+    M = KernelAbstractions.zeros(backend, T, n, n)
     for (a, L, D) in zip(alphas, Ls, Ds)
+        if has_backend(D)
+            D = adapt(backend, D)
+        end
         M .+= L * (a * D) * L'
     end
     return M

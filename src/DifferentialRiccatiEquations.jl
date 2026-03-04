@@ -5,8 +5,8 @@ module DifferentialRiccatiEquations
 using CommonSolve: CommonSolve, init, solve, solve!, step!
 using Compat: @something
 
-using Adapt: adapt
-using KernelAbstractions: get_backend
+using Adapt: Adapt, adapt
+using KernelAbstractions: KernelAbstractions, get_backend
 using LinearAlgebra: LinearAlgebra, ColumnNorm, Factorization, I, Symmetric,
                      UniformScaling, diagm, dot, eigen, factorize, mul!, norm, qr,
                      rank, rmul!, schur
@@ -51,6 +51,7 @@ include("util/_zeros.jl")
 include("util/_diagm.jl")
 include("util/_dcat.jl")
 include("util/_hcat.jl")
+include("util/has_backend.jl")
 include("util/restrict.jl")
 include("util/solution.jl")
 

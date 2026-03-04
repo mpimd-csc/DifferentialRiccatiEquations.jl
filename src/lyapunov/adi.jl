@@ -147,6 +147,14 @@ function compress!(cache::ADICache)
     return nothing
 end
 
+# TODO: Add in-place variant: F = assemble_shifted_system!(F, ...)
+#= TODO/FIXME: Revisit https://github.com/JuliaSparse/SparseArrays.jl/issues/594 on Julia 1.10
+assemble_shifted_system(A, E, μ) = A + E * μ
+assemble_shifted_system(A::Adjoint, E::Adjoint, μ) = (A' + E' * conj(μ))'
+assemble_shifted_system(A::LowRankUpdate{<: Adjoint}, E::Adjoint, μ) = (A' + E' * conj(μ))'
+=#
+assemble_shifted_system(A, E, μ) = A + (E' * conj(μ))'
+
 function perform_single_step!(cache::ADICache, μ)
     (; prob, alg, residual) = cache
     (; E, A) = prob
@@ -154,7 +162,7 @@ function perform_single_step!(cache::ADICache, μ)
     Rtype = typeof(R)
 
     # Compute increment:
-    F = A' + (μ*E)'
+    F = assemble_shifted_system(A', E', μ)
     @timeit_debug "solve (real)" begin
         inner_prob = BlockLinearProblem(F, R)
         V = solve(inner_prob, alg.inner_alg)::Rtype
@@ -193,7 +201,7 @@ function perform_double_step!(cache::ADICache, μ)
     @timeit_debug "callbacks" observe_gale_metadata!(cache.observer, "ADI shifts", μ_next)
 
     # Compute increment:
-    F = A' + (conj(μ)*E)'
+    F = assemble_shifted_system(A', E', μ)
     @timeit_debug "solve (complex)" begin
         inner_prob = BlockLinearProblem(F, R)
         V = solve(inner_prob, alg.inner_alg)

@@ -10,6 +10,7 @@ All linear solvers from LinearSolve.jl can now be used inside `ADI`.
 * Add `WithKwargs` convenience wrapper to bundle an algorithm with some keyword arguments.
   Example: `ADI(ColumnWise(WithKwargs(LinearSolve.KrylovJL_BICGSTAB(); maxiters)))`.
   See docstring of `WithKwargs` for more info.
+* Improve GPU support; see `test/{LDLt,tiny_random,residual}.jl`
 
 # v0.5.5
 

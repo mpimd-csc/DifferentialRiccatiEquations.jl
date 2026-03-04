@@ -59,7 +59,7 @@ end
     ref = solve(prob, alg; dt=Δt(5))
     ε = norm(ref.K[end]) * size(E, 1) * eps() * 100
 
-    @testset "Default inner solver" for (desc, algs) in (
+    @testset "$desc" for (desc, algs) in (
         ("ADI w/ default inner solver", alg),
         ("ADI w/ BiCGStab", algs),
     )

@@ -174,6 +174,8 @@ help?> Shifts
 # Known issues
 
 * ADI on GPU breaks for complex-valued shifts
+* GPU tests currently broken on Julia 1.12; see
+  https://github.com/JuliaGPU/CUDA.jl/issues/3041#issuecomment-3996816271
 
 # Acknowledgments
 

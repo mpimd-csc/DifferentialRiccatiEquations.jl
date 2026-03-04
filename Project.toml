@@ -16,9 +16,11 @@ TimerOutputs = "a759f4b9-e2f1-59dc-863e-4aeb61b1ea8f"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [weakdeps]
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 LinearSolve = "7ed4a6bd-45f5-4d41-b270-4a48e9bafcae"
 
 [extensions]
+CUDAExt = "CUDA"
 LinearSolveExt = "LinearSolve"
 
 [compat]

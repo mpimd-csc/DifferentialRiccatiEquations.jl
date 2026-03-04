@@ -1,6 +1,9 @@
 # This file is a part of DifferentialRiccatiEquations. License is MIT: https://spdx.org/licenses/MIT.html
 
 using Test, DifferentialRiccatiEquations
+using Adapt: adapt
+using CUDA
+using KernelAbstractions: get_backend
 using LinearAlgebra
 
 function sample(n, k)
@@ -19,10 +22,12 @@ function test_lowrank_essentials(X, Uref, Sref, Vref)
     @test rank(X) == k
 
     @testset "Conversion to $T" for T in (Matrix, Matrix{Float64}, Matrix{Float32})
+        Srefx = Sref isa UniformScaling ? Sref : adapt(get_backend(Uref), Sref)
+
         M = T(X)
         @test M isa T
         @test size(M) == (n, n)
-        @test M ≈ Uref * Sref * Vref'
+        @test M ≈ convert(Matrix, Uref * Srefx * Vref')
         @test M == convert(T, X)
     end
 
@@ -84,7 +89,7 @@ function test_lowrank_compression(X)
     X = deepcopy(X)
     S = only(X.Ds)
     fill!(S, 0)
-    S[1, 1] = 13
+    CUDA.@allowscalar S[1, 1] = 13
     @test rank(X) == k # storage size != numerical rank
     @test rank(compress!(X)) == 1
 end
@@ -98,18 +103,47 @@ S = sample(k, k)
 S += S'
 @assert issymmetric(S)
 
-tests = [
-    ("Symmetric definite U * U'", lowrank(U), I, U),
-    ("Symmetric indefinite U * (S::Matrix) * U'", lowrank(U, S), S, U),
-    ("Symmetric indefinite U * (S::Symmetric) * U'", lowrank(U, Symmetric(S)), Symmetric(S), U),
-    # TODO: ("Nonsymmetric U * V'", lowrank(U, I, V), I, V),
-    # TODO: ("Nonsymmetric U * S * V'", lowrank(U, S, V), S, V),
+tests = Any[
+    ("Symmetric definite U * U'", lowrank(U), U, I, U),
+    ("Symmetric indefinite U * (S::Matrix) * U'", lowrank(U, S), U, S, U),
+    ("Symmetric indefinite U * (S::Symmetric) * U'", lowrank(U, Symmetric(S)), U, Symmetric(S), U),
+    # TODO: ("Nonsymmetric U * V'", lowrank(U, I, V), U, I, V),
+    # TODO: ("Nonsymmetric U * S * V'", lowrank(U, S, V), U, S, V),
 ]
 
-@testset "$desc" for (desc, X, Sref, Vref) in tests
-    @testset "Essentials" test_lowrank_essentials(X, U, Sref, Vref)
+if CUDA.functional()
+    to = CUDABackend()
+    Ud = adapt(to, U)
+    Sd = adapt(to, S)
+    append!(tests, [
+        ("CUDA: Symmetric definite U * U'", lowrank(Ud), Ud, I, Ud),
+        ("CUDA: Symmetric indefinite U * (S::Matrix) * U'", lowrank(Ud, S), Ud, S, Ud),
+        ("CUDA: Symmetric indefinite U * (S::CuMatrix) * U'", lowrank(Ud, Sd), Ud, Sd, Ud),
+        # FIXME: ("CUDA: Symmetric indefinite U * (S::Symmetric) * U'", lowrank(Ud, Symmetric(Sd)), Ud, Symmetric(Sd), Ud),
+    ])
+
+    @testset "Adapt" begin
+        X1 = adapt(to, lowrank(U))
+        X2 = lowrank(Ud)
+        @test typeof(X1) == typeof(X2)
+        @test X1 == X2
+
+        X1 = adapt(to, lowrank(U, S))
+        X2 = lowrank(Ud, Sd)
+        @test typeof(X1) == typeof(X2)
+        @test X1 == X2
+
+        X1 = adapt(to, lowrank(U, Symmetric(S)))
+        X2 = lowrank(Ud, Symmetric(Sd))
+        @test typeof(X1) == typeof(X2)
+        @test X1 == X2
+    end
+end;
+
+@testset "$desc" for (desc, X, Uref, Sref, Vref) in tests
+    @testset "Essentials" test_lowrank_essentials(X, Uref, Sref, Vref)
     @testset "Arithmetic" test_lowrank_arithmetic(X)
     if !(eltype(X.Ds) <: UniformScaling)
         @testset "Compression" test_lowrank_compression(X)
     end
-end
+end;

@@ -22,12 +22,24 @@ using Compat: @something
     dim = h + 2zₖ
     @debug "Assembling ARE residual" h zₖ
 
+    # Try to assemble residual of the same type as `val`:
+    backend = if has_backend(D)
+        get_backend(D)
+    elseif has_backend(S)
+        get_backend(S)
+    elseif has_backend(R⁻¹)
+        get_backend(R⁻¹)
+    else
+        KernelAbstractions.CPU()
+    end
+
     # Compute optional inputs
     AᵀL = @something(AᵀL, A'L)
     EᵀL = @something(EᵀL, E'L)
     if DLᵀGLD === nothing
         if BᵀLD === nothing
-            BᵀLD = (B'L)*D
+            BᵀL = adapt(backend, B'L)
+            BᵀLD = BᵀL * D
             alpha * beta == 1 || rmul!(BᵀLD, alpha * beta)
         end
         DLᵀGLD = (BᵀLD)' * R⁻¹ * BᵀLD
@@ -35,7 +47,7 @@ using Compat: @something
 
     # Compute residual following Benner, Li, Penzl (2008)
     R = [Cᵀ AᵀL EᵀL]
-    T = zeros(eltype(X), dim, dim)
+    T = KernelAbstractions.zeros(backend, eltype(X), dim, dim)
     b1 = 1:h
     b2 = h+1:h+zₖ
     b3 = b2 .+ zₖ
@@ -53,14 +65,21 @@ end
 
 @timeit_debug "residual(::GAREProblem, ::Matrix)" function residual(
     prob::GAREProblem,
-    X::Matrix;
+    X::AbstractMatrix;
 )
 
     @unpack E, A, G, Q = prob
     alpha, B, D = G
     BᵀXE = (B' * X) * E
-    res = Matrix(Q)
+
+    alpha_D = alpha == 1 ? D : alpha * D
+    if has_backend(alpha_D)
+        to = get_backend(BᵀXE)
+        alpha_D = adapt(to, alpha_D)
+    end
+
+    res = convert(typeof(X), Q)
     res += A' * X * E
     res += E' * X * A
-    res -= (BᵀXE)' * (alpha * D) * BᵀXE
+    res -= (BᵀXE)' * alpha_D * BᵀXE
 end
