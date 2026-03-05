@@ -31,12 +31,15 @@ struct SimpleBiCGStabCache{T}
     p::T
     t::T
     r0::T
+    # Used by inexact ADI:
+    abstol
+    reltol
 end
 
 rhs(cache::SimpleBiCGStabCache) = rhs(cache.prob)
 solution(cache::SimpleBiCGStabCache) = cache.x
 
-function CommonSolve.init(prob::LinearProblem, alg::SimpleBiCGStab)
+function CommonSolve.init(prob::LinearProblem, alg::SimpleBiCGStab; abstol=nothing, reltol=nothing)
     (; A, b) = prob
 
     # For better reproducibility and predictability:
@@ -55,13 +58,13 @@ function CommonSolve.init(prob::LinearProblem, alg::SimpleBiCGStab)
     r0 = randn(rng, eltype(A), length(b))
     r0 ./= norm(r0)
 
-    SimpleBiCGStabCache{typeof(x)}(prob, alg, x, h, s, r, v, p, t, r0)
+    SimpleBiCGStabCache{typeof(x)}(prob, alg, x, h, s, r, v, p, t, r0, abstol, reltol)
 end
 
 # Derived from https://en.wikipedia.org/wiki/Biconjugate_gradient_stabilized_method
 function CommonSolve.solve!(cache::SimpleBiCGStabCache)
     (; A, b) = cache.prob
-    (; maxiters, reltol) = cache.alg
+    (; maxiters) = cache.alg
     (; x, h, s, r, r0, v, p, t) = cache
 
     # Use zero as initial guess:
@@ -69,8 +72,11 @@ function CommonSolve.solve!(cache::SimpleBiCGStabCache)
     copyto!(r, b)
     copyto!(p, r)
 
+    # Initialize tolerances:
+    reltol = @something(cache.reltol, cache.alg.reltol, size(A, 1) * eps(eltype(b)))
+    abstol = @something(cache.abstol, reltol * norm(r))
+
     rho = dot(r0, r)
-    abstol = reltol * norm(r)
     for _ in 1:maxiters
         mul!(v, A, p)
         alpha = rho / dot(r0, v)

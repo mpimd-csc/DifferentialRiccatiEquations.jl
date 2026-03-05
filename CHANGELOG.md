@@ -1,6 +1,7 @@
 # v0.5.6
 
 All linear solvers from LinearSolve.jl can now be used inside `ADI`.
+This release adds an *experimental* implementation of an inexact ADI following Kürschner and Freitag (2020) to solve ALEs.
 
 * Fix `eltype(::LowRankUpdate)`
 * Add `ndims(::LowRankUpdate)`
@@ -11,6 +12,8 @@ All linear solvers from LinearSolve.jl can now be used inside `ADI`.
   Example: `ADI(ColumnWise(WithKwargs(LinearSolve.KrylovJL_BICGSTAB(); maxiters)))`.
   See docstring of `WithKwargs` for more info.
 * Improve GPU support; see `test/{LDLt,tiny_random,residual}.jl`
+* Add *experimental* options `ADI(; inexact, inexact_forcing)`;
+  see docstring of `ADI` for more info
 
 # v0.5.5
 

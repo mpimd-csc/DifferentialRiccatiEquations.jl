@@ -64,6 +64,7 @@ function test_ale(E, A, g=g)
     backend isa CPU || return
 
     X_adi = solve(prob, ADI())
+    X_adi3 = solve(prob, ADI(ColumnWise(SimpleBiCGStab()); inexact=true))
     X_bad = solve(prob, Kronecker())
     X_gmres = solve(prob, GMRES(; maxiters=5, reltol=1e-8))
     X_fgmres = solve(prob, GMRES(;
@@ -79,11 +80,13 @@ function test_ale(E, A, g=g)
     ))
     @test norm(residual(prob, X_ref)) / res0 < 1e-10
     @test norm(residual(prob, X_adi)) / res0 < 1e-10
+    @test norm(residual(prob, X_adi3)) / res0 < 1e-10
     @test norm(residual(prob, X_bad)) / res0 < 0.02
     @test norm(residual(prob, X_gmres)) / res0 < 1e-8
     @test norm(residual(prob, X_fgmres)) / res0 < 1e-10
 
     @test delta(Matrix(X_adi), X_ref) < 1e-10
+    @test delta(Matrix(X_adi3), X_ref) < 1e-10
     @test delta(Matrix(X_gmres), X_ref) < 1e-8
     @test delta(Matrix(X_fgmres), X_ref) < 1e-10
     @test delta(X_bad, X_ref) < 0.02
