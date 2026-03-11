@@ -105,8 +105,7 @@ function CommonSolve.solve(
         # Right-hand side:
         m = size(B, 2)
         q = size(Cᵀ, 2)
-        EᵀXB = EᵀL * (BᵀLD)'
-        G::TL = _hcat(TL, Cᵀ, EᵀXB)
+        G::TL = _hcat(TL, Cᵀ, K')
         S::TD = _dcat(TD, (I(q), I(m)))
         RHS = lowrank(G, S)
 
