@@ -54,6 +54,16 @@ Supported keyword arguments (`kwargs`):
 - `inexact_forcing = simple_adi_forcing`:
   which relaxation strategy to use; see [`simple_adi_forcing`](@ref) for more info
 
+Supported `solve_kwargs`:
+
+- `initial_guess = nothing`:
+  first solution guess; if set to `nothing` (or if `ignore_initial_guess = true`), equivalent to `zero(prob.C)`
+- `initial_residual = nothing`:
+  residual corresponding to `initial_guess`; if set to `nothing`, equivalent to `residual(prob, initial_guess)`
+- `abstol = nothing`: identical behavior to value from `kwargs` but with higher precedence
+- `accumulate_solution = true`: whether to assemble full solution; if set to `false`, `solve` returns `initial_guess`
+- `observer = nothing`: see [Callbacks](@ref)
+
 !!! warning "Experimental"
     The `inexact*` arguments are not part of the stability promises of semantic versioning.
     That is, the API may change or the functionality might be removed any time.

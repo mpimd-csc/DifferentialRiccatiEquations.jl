@@ -140,7 +140,33 @@ if CUDA.functional()
     end
 end
 
-first.(tests)
+@testset "ADI w/o assembling the solution" begin
+    E, A = E_sym, A_sym
+    n = size(A, 1)
+    G = randn(n, g)
+    S = randn(g, g)
+    S += S'
+    C = lowrank(G, S)
+
+    prob = GALEProblem(E, A, C)
+    reltol = 1e-4
+    alg = ADI(; reltol)
+
+    # Ensure input is unchanged:
+    initial_guess = zero(C)
+    X = solve(prob, alg; initial_guess, accumulate_solution=false)
+    @test X === initial_guess
+    @test iszero(X)
+
+    # Ensure ADI still solves equation:
+    cache = init(prob, alg; accumulate_solution=false)
+    X = zero(C)
+    for _ in cache
+        X += cache.increment
+    end
+    @test norm(residual(prob, X)) / norm(C) <= reltol
+    @test iszero(solve!(cache))
+end
 
 @testset "$desc" for (desc, E, A) in tests
     test_ale(E, A)

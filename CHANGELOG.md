@@ -1,3 +1,8 @@
+# v0.5.7
+
+* Add option `solve(_, ::ADI; accumulate_solution)`;
+  see docstring of `ADI` for more info
+
 # v0.5.6
 
 All linear solvers from LinearSolve.jl can now be used inside `ADI`.
