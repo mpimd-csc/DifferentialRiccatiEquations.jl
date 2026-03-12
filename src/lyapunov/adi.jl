@@ -12,6 +12,7 @@ using Compat: @something
     last_compression::Int = 0 # number of steps after last `compress!(X)`
     X::LDLᵀ{Eltype,Ztype,Ttype} # current iterate
     increment::LDLᵀ{Eltype,Rtype,Ttype} # last increment before `X += increment`, initially zero
+    accumulate_solution::Bool # whether to update X
     # Parts of increments:
     V1::Union{Nothing,Rtype} = nothing
     V2::Union{Nothing,Rtype} = nothing
@@ -34,6 +35,7 @@ function CommonSolve.init(
     initial_residual::Union{Nothing,<:LDLᵀ}=nothing,
     abstol=nothing,
     observer=nothing,
+    accumulate_solution::Bool=true,
 )
     @timeit_debug "callbacks" observe_gale_start!(observer, prob, alg)
     @unpack E, A, C = prob
@@ -66,7 +68,7 @@ function CommonSolve.init(
     @timeit_debug "callbacks" observe_gale_step!(observer, 0, X, initial_residual, residual_norm)
 
     increment = zero(initial_residual)
-    ADICache(; prob, alg, abstol, observer, shifts_oracle, shifts, X, increment, residual=initial_residual, residual_norm)
+    ADICache(; prob, alg, abstol, observer, shifts_oracle, shifts, X, increment, residual=initial_residual, residual_norm, accumulate_solution)
 end
 
 function CommonSolve.solve!(cache::ADICache)
@@ -187,8 +189,10 @@ function perform_single_step!(cache::ADICache, μ)
     mul!(R, E', V, -2μ, true)
 
     # Update solution:
-    cache.X += cache.increment
-    cache.last_compression += 1
+    if cache.accumulate_solution in (nothing, true)
+        cache.X += cache.increment
+        cache.last_compression += 1
+    end
 
     @timeit_debug "shifts" Shifts.update!(cache.shifts_oracle, cache.X, R, V)
     return nothing
@@ -240,8 +244,10 @@ function perform_double_step!(cache::ADICache, μ)
     mul!(R, E', V₁, -2√2 * real(μ), true)
 
     # Update solution:
-    cache.X += cache.increment
-    cache.last_compression += 2
+    if cache.accumulate_solution in (nothing, true)
+        cache.X += cache.increment
+        cache.last_compression += 2
+    end
 
     @timeit_debug "shifts" Shifts.update!(cache.shifts_oracle, cache.X, R, V₁, V₂)
     return nothing
