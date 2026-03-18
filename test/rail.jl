@@ -86,11 +86,19 @@ using DifferentialRiccatiEquations.Shifts
     Q = lowrank(C', I)
     are = GAREProblem(E, A, G, Q)
     reltol = 1e-10
-    @testset "$(adi_kwargs.shifts)" for adi_kwargs in [
-        (shifts = Projection(2),), # leads to some complex shifts
-        (shifts = Cyclic(Heuristic(10, 20, 20)), maxiters = 200),
+    common = (;
+        ignore_initial_guess = true,
+    )
+    smw = ShermanMorrisonWoodbury(
+        ColumnWise(SimpleBiCGStab()),
+        Backslash(),
+    )
+    @testset "$desc" for (desc, adi) in [
+        ("Projection shifts", ADI(; shifts = Projection(2), common...)), # leads to some complex shifts
+        ("Heuristic shifts", ADI(; shifts = Cyclic(Heuristic(10, 20, 20)), maxiters = 200, common...)),
+        ("SMW", ADI(smw; shifts = Cyclic(Heuristic(10, 20, 20)))),
+        ("SMW (inexact)", ADI(smw; shifts = Cyclic(Heuristic(10, 20, 20)), inexact = true)), # why is this one slower than inexact = false?
     ]
-        adi = ADI(; ignore_initial_guess=true, adi_kwargs...)
         newton = Newton(adi; maxiters=10, reltol)
         X = solve(are, newton)
         @test norm(residual(are, X)) < reltol * norm(Q)
