@@ -72,6 +72,10 @@ function CommonSolve.solve!(cache::SimpleBiCGStabCache)
     copyto!(r, b)
     copyto!(p, r)
 
+    # Assume that A is regular:
+    # This short-cut is needed for the Newton-ADI .... and I am not sure why.
+    iszero(r) && return x
+
     # Initialize tolerances:
     reltol = @something(cache.reltol, cache.alg.reltol, size(A, 1) * eps(eltype(b)))
     abstol = @something(cache.abstol, reltol * norm(r))

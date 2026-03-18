@@ -1,3 +1,8 @@
+# v0.5.8
+
+* Allow `ShermanMorrisonWoodbury` inside inexact ADI
+  (*experimental* since the tolerances are only passed onto the sparse solver)
+
 # v0.5.7
 
 * Add option `solve(_, ::ADI; accumulate_solution)`;
