@@ -1,3 +1,8 @@
+# v0.5.8
+
+* Fix `Kronecker`: add a missing transposition in the input to the Kronecker product, greatly improving solver accuracy.
+  Still, this solver should only be used for prototyping!
+
 # v0.5.7
 
 * Add option `solve(_, ::ADI; accumulate_solution)`;

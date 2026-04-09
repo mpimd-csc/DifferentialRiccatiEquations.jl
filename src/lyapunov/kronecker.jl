@@ -5,7 +5,7 @@ using LinearAlgebra: kron
 function CommonSolve.solve(prob::GALEProblem, ::Kronecker)
     @unpack E, A, C = prob
 
-    F = kron(E', A) + kron(A', E)
+    F = kron(E', A') + kron(A', E')
     b = -vec(Matrix(C))
     x = F \ b
 

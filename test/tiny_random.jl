@@ -82,7 +82,7 @@ function test_ale(E, A, g=g)
     @test norm(residual(prob, X_ref)) / res0 < 1e-10
     @test norm(residual(prob, X_adi)) / res0 < 1e-10
     @test norm(residual(prob, X_adi3)) / res0 < 1e-10
-    @test norm(residual(prob, X_bad)) / res0 < 0.02
+    @test norm(residual(prob, X_bad)) / res0 < 1e-10
     @test norm(residual(prob, X_gmres)) / res0 < 1e-8
     @test norm(residual(prob, X_fgmres)) / res0 < 1e-10
 
