@@ -10,13 +10,14 @@ end
 @timeit_debug "Sherman-Morrison-Woodbury" function CommonSolve.init(
     prob::BlockLinearProblem,
     smw::ShermanMorrisonWoodbury;
+    kwargs...,
 )
     prob.A isa LowRankUpdate || error("Not implemented")
     A, α, U, V = prob.A
     B = prob.B
     @unpack ALG, alg = smw
 
-    A⁻¹U = @timeit_debug "solve (sparse)" solve(BlockLinearProblem(A, U), ALG)
+    A⁻¹U = @timeit_debug "solve (sparse)" solve(BlockLinearProblem(A, U), ALG; kwargs...)
     S = α*I + V * A⁻¹U
     ELTYPE = Base.promote_eltype(A, B)
     if B isa AbstractVector
@@ -25,7 +26,7 @@ end
         T = similar(B, ELTYPE, size(V, 1), size(B, 2))
     end
 
-    SOLVER = init(BlockLinearProblem(A, B), ALG)
+    SOLVER = init(BlockLinearProblem(A, B), ALG; kwargs...)
     solver = init(BlockLinearProblem(S, T), alg)
     ShermanMorrisonWoodburySolver(A⁻¹U, V, SOLVER, solver)
 end

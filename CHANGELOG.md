@@ -1,5 +1,7 @@
 # v0.5.8
 
+* Allow `ShermanMorrisonWoodbury` inside inexact ADI
+  (*experimental* since the tolerances are only passed onto the sparse solver)
 * Fix `Kronecker`: add a missing transposition in the input to the Kronecker product, greatly improving solver accuracy.
   Still, this solver should only be used for prototyping!
 
