@@ -6,6 +6,7 @@ using CUDA
 using DifferentialRiccatiEquations
 using KernelAbstractions: CPU, get_backend
 using LinearAlgebra, SparseArrays, UnPack
+using StableRNGs
 
 using DifferentialRiccatiEquations.Stuff: delta
 using DifferentialRiccatiEquations.Shifts: Cyclic, Heuristic
@@ -30,7 +31,7 @@ function test_ale(E, A, g=g)
     backend = get_backend(A)
 
     n = size(E, 1)
-    G = rand(n, g)
+    G = rand(StableRNG(42), n, g)
     G = adapt(backend, G)
     S = -Matrix{Float64}(I(g))
     C = -2lowrank(G, S)
@@ -95,14 +96,16 @@ end
 isstable(X::SparseMatrixCSC) = isstable(Matrix(X))
 isstable(X::AbstractMatrix) = all(isstable, eigvals(X))
 
-E = sprand(n, n, 1/n)
+rng = StableRNG(123)
+
+E = sprand(rng, n, n, 1/n)
 E_sym = E + E' + n*I
 E_gen = E + n*I
 @assert isposdef(E_sym)
 @assert isstable(-E_gen)
 @assert !issymmetric(E_gen)
 
-A = sprand(n, n, 1/n)
+A = sprand(rng, n, n, 1/n)
 A_sym = A + A' - n*I
 A_gen = A - n*I
 @assert isposdef(-A_sym)
@@ -143,8 +146,9 @@ end
 @testset "ADI w/o assembling the solution" begin
     E, A = E_sym, A_sym
     n = size(A, 1)
-    G = randn(n, g)
-    S = randn(g, g)
+    rng = StableRNG(21)
+    G = randn(rng, n, g)
+    S = randn(rng, g, g)
     S += S'
     C = lowrank(G, S)
 
