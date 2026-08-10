@@ -42,6 +42,36 @@ end
 # because that would be ambiguous, for example,
 # if `L` is a GPU array while `D` is a CPU array.
 
+function Base.summary(io::IO, X::LDLᵀ)
+    T = eltype(X)
+    n = size(X, 1)
+    r = rank(X)
+    print(io, "$n×$n LDLᵀ{$T} with inner dimension $r")
+    return
+end
+
+function Base.show(io::IO, ::MIME"text/plain", X::LDLᵀ)
+    function showfirst(f, itr, n)
+        if length(itr) <= n
+            join(io, f.(itr), ", ")
+        else
+            for (_, val) in zip(1:n, itr)
+                print(io, f(val), ", ")
+            end
+            print(io, "…")
+        end
+        return
+    end
+
+    summary(io, X)
+    print(io, ":\n  alphas: ", summary(X.alphas), " with entries ")
+    showfirst(identity, X.alphas, 3)
+    print(io, "\n  Ls: ", summary(X.Ls), " with entries having ")
+    showfirst(L -> size(L, 2), X.Ls, 3)
+    print(" columns\n  Ds: ", summary(X.Ds))
+    return
+end
+
 Base.:(==)(X::LDLᵀ, Y::LDLᵀ) = X.alphas == Y.alphas && X.Ls == Y.Ls && X.Ds == Y.Ds
 
 Base.eltype(::Type{<:LDLᵀ{T}}) where {T} = T
