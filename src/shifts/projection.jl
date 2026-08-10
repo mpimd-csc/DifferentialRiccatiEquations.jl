@@ -61,7 +61,7 @@ function take_many!(it::ProjectionShiftIterator)
     Ã = restrict(A, Q)
 
     # Ensure data lives on the CPU
-    T = Matrix{eltype(E)}
+    T = Matrix{eltype(A)}
     Ẽ = adapt(T, Ẽ)
     Ã = adapt(T, Ã)
     λ = eigvals(Ã, Ẽ)

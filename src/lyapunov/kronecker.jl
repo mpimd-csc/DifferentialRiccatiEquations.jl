@@ -5,6 +5,11 @@ using LinearAlgebra: kron
 function CommonSolve.solve(prob::GALEProblem, ::Kronecker)
     @unpack E, A, C = prob
 
+    if E isa UniformScaling
+        n = size(A, 1)
+        E = E(n)
+    end
+
     F = kron(E', A') + kron(A', E')
     b = -vec(Matrix(C))
     x = F \ b

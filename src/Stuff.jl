@@ -6,7 +6,9 @@ using SparseArrays, LinearAlgebra
 
 export orth, restrict
 
+# TODO: Is Q orthogonal for all uses? If so, optimize the UniformScaling method.
 restrict(A, Q) = Q' * A * Q
+restrict(A::UniformScaling, Q) = A * (Q' * Q)
 
 orth(N::SparseMatrixCSC) = orth(Matrix(N))
 

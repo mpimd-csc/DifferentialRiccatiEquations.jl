@@ -75,6 +75,13 @@ function Base.:(*)(AUV::LowRankUpdate, X::AbstractVecOrMat)
     mul!(Y, AUV, X)
 end
 
+function KernelAbstractions.get_backend(AUV::LowRankUpdate)
+    backend = get_backend(AUV.A)
+    get_backend(AUV.U) == backend || throw(ArgumentError("Multiple backends discovered"))
+    get_backend(AUV.V) == backend || throw(ArgumentError("Multiple backends discovered"))
+    return backend
+end
+
 function LinearAlgebra.mul!(Y::AbstractVecOrMat, AUV::LowRankUpdate, X::AbstractVecOrMat)
     size(X, 1) == size(X, 2) && @warn(
         "Multiplying LowRankUpdate by square matrix; memory usage may increase severely",
