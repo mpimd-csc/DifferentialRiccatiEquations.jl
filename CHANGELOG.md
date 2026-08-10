@@ -6,6 +6,7 @@
   Still, this solver should only be used for prototyping!
 * Fix `GALEProblem(E::UniformScaling, A, C)`, i.e., standard ALEs (CPU only; GPU not tested)
 * Improve `BartelsStewart` performance if `E == I`
+* Add pretty printing for `LDLᵀ`
 
 # v0.5.7
 
