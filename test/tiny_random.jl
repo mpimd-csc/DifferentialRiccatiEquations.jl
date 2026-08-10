@@ -27,10 +27,12 @@ g = 4
 # 4. Compute new solution using ADI(; reltol=resnorm/10)
 # 5. Test new resnorm <= new reltol; note that new reltol is smaller than old reltol
 
+LinearAlgebra.factorize(A::UniformScaling) = A
+
 function test_ale(E, A, g=g)
     backend = get_backend(A)
 
-    n = size(E, 1)
+    n = size(A, 1)
     G = rand(StableRNG(42), n, g)
     G = adapt(backend, G)
     S = -Matrix{Float64}(I(g))
@@ -116,7 +118,8 @@ Es = Any[ # desc, E
     ("Symmetric E", E_sym),
     ("E::Symmetric", Symmetric(E_sym)),
     ("Non-symmetric E", E_gen),
-    # TODO: ("Identity E", I),
+    ("Identity E", I),
+    ("E::UniformScaling", 2 * I),
 ]
 
 As = Any[ # desc, A
@@ -133,6 +136,7 @@ end
 if CUDA.functional()
     to = CUDABackend()
     for (descE, E) in Es
+        E isa UniformScaling && continue # TODO
         E isa Symmetric && continue # FIXME
         Ed = adapt(to, E)
         for (descA, A) in As

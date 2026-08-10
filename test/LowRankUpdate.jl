@@ -3,6 +3,7 @@
 using Test
 using LinearAlgebra
 using DifferentialRiccatiEquations: LowRankUpdate, lr_update
+using KernelAbstractions: CPU, get_backend
 using SparseArrays
 
 n = 10
@@ -50,6 +51,9 @@ function test_lr_update(A, U, V)
     @test _U === U
     @test _V === V
     @test _α === -1
+
+    # Other:
+    @test get_backend(AUV) isa CPU
 end
 
 @testset "Sparse A" begin

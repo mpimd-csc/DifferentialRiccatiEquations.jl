@@ -46,7 +46,7 @@ function init(strategy::Heuristic, prob)
     # or between algorithms in general.
 
     # Create a dense vector of ones on the same compute backend as A and E.
-    b0 = arnoldi_b0(E)
+    b0 = arnoldi_b0(A)
 
     solver = CommonSolve.init(BlockLinearProblem(E, similar(b0)), alg_E)
     R₊ = compute_ritz_values(b0, k₊, "E⁻¹A") do x
