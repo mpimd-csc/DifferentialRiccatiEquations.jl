@@ -68,7 +68,7 @@ function Base.show(io::IO, ::MIME"text/plain", X::LDLᵀ)
     showfirst(identity, X.alphas, 3)
     print(io, "\n  Ls: ", summary(X.Ls), " with entries having ")
     showfirst(L -> size(L, 2), X.Ls, 3)
-    print(" columns\n  Ds: ", summary(X.Ds))
+    print(io, " columns\n  Ds: ", summary(X.Ds))
     return
 end
 

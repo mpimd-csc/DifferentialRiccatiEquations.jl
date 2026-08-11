@@ -1,3 +1,7 @@
+# v0.5.9
+
+* Fix pretty printing for `LDLᵀ`
+
 # v0.5.8
 
 * Allow `ShermanMorrisonWoodbury` inside inexact ADI
